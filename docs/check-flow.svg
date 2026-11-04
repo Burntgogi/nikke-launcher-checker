@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 604 370" role="img" aria-labelledby="flow-title flow-desc">
+  <title id="flow-title">니케 런처 체커 작동 순서</title>
+  <desc id="flow-desc">배치 파일을 열면 PowerShell이 런처 로그와 캐시, Chrome 의심 파일과 사용자 레지스트리를 읽는다. 가장 강한 흔적에 맞춰 결과와 대응 방법을 보여 주고 점검 로그를 저장한다.</desc>
+  <rect x="1" y="1" width="602" height="368" rx="24" fill="#f1f4ff" stroke="#dce2f6" stroke-width="2"/>
+  <path d="M55 86v51m0 73v50" fill="none" stroke="#6474bc" stroke-width="3"/>
+  <path d="m49 128 6 8 6-8m-12 123 6 8 6-8" fill="none" stroke="#6474bc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#374bb0">
+    <circle cx="55" cy="67" r="21"/><circle cx="55" cy="177" r="21"/><circle cx="55" cy="286" r="21"/>
+  </g>
+  <g fill="#fff" font-family="system-ui, sans-serif" font-size="20" font-weight="700" text-anchor="middle">
+    <text x="55" y="74">1</text><text x="55" y="184">2</text><text x="55" y="293">3</text>
+  </g>
+  <g fill="#18244b" font-family="Malgun Gothic, Apple SD Gothic Neo, sans-serif" font-size="27" font-weight="700">
+    <text x="94" y="76">배치 파일 실행</text>
+    <text x="94" y="186">현재 계정의 기록 읽기</text>
+    <text x="94" y="295">결과 표시와 로그 저장</text>
+  </g>
+  <g fill="#47557c" font-family="Malgun Gothic, Apple SD Gothic Neo, sans-serif" font-size="21">
+    <text x="94" y="108">Run-Nikke-Check.bat → PowerShell</text>
+    <text x="94" y="218">런처 로그·캐시, Chrome 파일·설정</text>
+    <text x="94" y="327">가장 강한 흔적과 지금 할 일 안내</text>
+  </g>
+</svg>
