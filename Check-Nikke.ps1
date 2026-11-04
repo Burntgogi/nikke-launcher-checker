@@ -11,6 +11,7 @@ if (!$LogDirectory) { $LogDirectory = Join-Path $PSScriptRoot 'logs' }
 $lines = [System.Collections.Generic.List[string]]::new()
 $hits = [ordered]@{ Exposure = 0; Request = 0; Download = 0; Execution = 0; Persistence = 0; Review = 0 }
 $scan = @{ Issues = 0; DebugLogs = 0; CacheFiles = 0; PayloadFiles = 0 }
+$affectedCaches = [System.Collections.Generic.List[string]]::new()
 $loaderUrl = '(?i)https?://(?:analytics\.)?insightjs\.(?:com|org)(?=[:/\s"''\x00]|$)'
 $payloadUrl = '(?i)(?:https?://)?analytics\.insightjs\.com/comm/assets/insight\.bundle\b'
 $loaderCacheNames = 'dd65fa4d61079e7e_0', 'ce2fd3f1007a9fe9_0', '1416c638b3830103_0', 'fd520c7c0f65c2d7_0'
@@ -321,6 +322,7 @@ try {
             if ($profile.Attributes -band [IO.FileAttributes]::ReparsePoint) { Add-Gap $profile.FullName '프로필 링크 건너뜀'; continue }
             $cache = Join-Path $profile.FullName 'tbs_cache'
             if (!(Get-ScanItem $cache)) { continue }
+            $findingsBefore = $hits.Exposure + $hits.Request + $hits.Download + $hits.Execution
             foreach ($file in Get-ScanFiles (Join-Path $cache 'Code Cache\js') 2) { Test-CacheFile $file 'Code' }
             foreach ($file in Get-ScanFiles (Join-Path $cache 'Cache') 3) { Test-CacheFile $file 'HTTP' }
             foreach ($file in Get-ScanFiles (Join-Path $cache 'Local Storage\leveldb') 1) {
@@ -328,6 +330,8 @@ try {
             }
             $network = Get-ScanItem (Join-Path $cache 'Network Persistent State')
             if ($network -and !$network.PSIsContainer) { Test-CacheFile $network 'HTTP' }
+            $findingsAfter = $hits.Exposure + $hits.Request + $hits.Download + $hits.Execution
+            if ($findingsAfter -gt $findingsBefore) { $affectedCaches.Add($cache) }
         }
     }
     if (!$scan.CacheFiles) { Write-Report '읽을 수 있는 런처 캐시가 없습니다.' }
@@ -341,13 +345,22 @@ $detailLineCount = $lines.Count - $headerLineCount
 $details = $lines.GetRange($headerLineCount, $detailLineCount)
 $lines.RemoveRange($headerLineCount, $detailLineCount)
 
-$pauseLauncher = '니케 PC 런처를 다시 열지 마세요. 점검 로그를 보관하고, 니케 공식 공지에서 업데이트와 캐시 정리 방법을 확인하세요.'
+$stopLauncher = '니케 PC 런처를 닫으세요. 작업 표시줄 알림 영역에도 남아 있으면 종료하고, 정리를 마칠 때까지 열지 마세요.'
+$preserve = '파일을 지우기 전에 점검 로그를 보관하세요. 백신에서 같은 파일을 탐지했다면 보호 기록도 남겨 두세요. 회사 PC라면 정리 전에 보안 담당자에게 연락하세요.'
+$removeLauncher = @('개인 PC에서 니케가 아직 설치돼 있다면 Windows 설정 → 앱 → 설치된 앱(Windows 10은 앱 및 기능)에서 제거하세요.')
+if ($affectedCaches.Count) {
+    $removeLauncher += '개인 PC에서 런처를 제거한 뒤에도 아래에 표시된 tbs_cache 폴더가 남아 있으면 그 폴더만 삭제하세요.'
+}
+$reinstallLauncher = 'PC 정리를 마치고 니케 공식 공지에서 수정판과 재설치 방법을 확인한 뒤 공식 배포처에서 새 설치 파일을 받으세요. 악성 파일이나 자동 실행 흔적이 남아 있다면 재설치를 미루세요.'
 $isolate = @(
     'Wi-Fi를 끄세요. 인터넷 케이블이 꽂혀 있으면 뽑으세요.'
-    'PC를 재부팅하거나 파일을 지우기 전에 점검 로그와 발견된 파일을 보관하세요. 회사 PC라면 보안팀에 먼저 연락하세요.'
+    $stopLauncher
+    $preserve
 )
-$accounts = '다른 안전한 기기에서 이메일, 니케/Level Infinite, 업무 계정의 비밀번호를 바꾸세요. 각 서비스의 보안 설정에서 기존 로그인 기기를 모두 로그아웃하세요.'
+$accounts = '다른 안전한 기기에서 이메일, 니케/Level Infinite, 브라우저에 저장했거나 이 PC에서 사용한 주요 계정의 비밀번호를 바꾸세요. 각 서비스의 보안 설정에서 모든 기기를 로그아웃하고 2단계 인증을 켜세요.'
 $keys = 'API 키나 SSH 키가 노출됐다면 폐기하고 다시 발급하세요. 가상자산 지갑의 복구 문구가 노출됐을 수 있다면 안전한 기기에서 새 지갑을 만드세요.'
+$scanForThreats = '개인 PC는 Windows 보안 → 바이러스 및 위협 방지 → 검사 옵션에서 전체 검사를 실행하세요. 다른 백신을 사용한다면 해당 백신으로 검사하세요.'
+$reviewQuarantine = '개인 PC는 Windows 보안의 보호 기록에서 점검 로그에 나온 경로와 일치하는 항목을 확인하세요. 조치가 필요하면 격리를 선택하세요. 같은 위협이 이미 격리돼 있고 기록을 보관했다면 해당 항목의 제거를 선택하세요.'
 $reinstall = @(
     '실행이나 자동 실행 흔적이 확인됐다면 Windows 클린 설치를 권장합니다. 필요한 문서와 사진, 점검 자료를 다른 저장장치에 보관하세요. BitLocker를 켰다면 복구 키도 확보하세요.'
     '안전한 PC에서 Microsoft 공식 Windows 설치 USB를 만드세요. USB를 꽂고 USB로 PC를 시작하세요. 설치 화면에서 Windows가 있던 디스크를 확인한 뒤 새로 설치하세요. 선택한 디스크의 데이터가 지워집니다.'
@@ -359,20 +372,18 @@ if ($hits.Execution -or $hits.Persistence) {
     if ($hits.Execution) { Write-Report '악성코드가 실행된 흔적을 찾았습니다.' -Show }
     if ($hits.Persistence) { Write-Report 'Chrome에서 악성코드가 다시 실행될 수 있는 파일이나 설정을 찾았습니다.' -Show }
     Write-Report '정보가 유출됐는지는 이 점검으로 알 수 없습니다.' -Show
-    $steps = $isolate + $accounts + $keys + $reinstall
+    $steps = $isolate + $accounts + $keys + $scanForThreats + $reviewQuarantine + $removeLauncher + $reinstall + $reinstallLauncher
 } elseif ($hits.Download) {
     Write-Report '악성코드로 의심되는 파일이나 다운로드 기록을 찾았습니다. 실행 여부는 확인되지 않았습니다.' -Show
-    $steps = $isolate + @(
-        ('실행이 의심되거나 당시 기록이 남아 있지 않다면 계정도 보호하세요. ' + $accounts)
-        $keys
-        '감염 여부를 확인하기 어렵고 PC를 안전하게 쓰기 힘들다면 Windows 클린 설치를 고려하세요. 설치 방법은 점검 로그의 Microsoft 안내를 참고하세요.'
-    )
+    $steps = $isolate + ('실행을 배제하기 어렵다면 계정부터 보호하세요. ' + $accounts) +
+        $scanForThreats + $reviewQuarantine + $removeLauncher +
+        '정리 후 다시 점검하세요. 악성 파일이 남거나 실행·Chrome 자동 실행 흔적이 나오면 PC를 분리한 상태에서 Windows 클린 설치를 검토하세요. 설치 방법은 점검 로그에 있습니다.' + $reinstallLauncher
 } elseif ($hits.Request) {
     Write-Report '악성코드의 다운로드 주소가 남아 있습니다. 파일을 받았거나 실행했는지는 확인되지 않았습니다.' -Show
-    $steps = @($pauseLauncher)
+    $steps = @($stopLauncher, $preserve) + $removeLauncher + $reinstallLauncher
 } elseif ($hits.Exposure) {
     Write-Report '악성 스크립트에 노출된 흔적을 찾았습니다. 악성코드 실행 여부는 확인되지 않았습니다.' -Show
-    $steps = @($pauseLauncher)
+    $steps = @($stopLauncher, $preserve) + $removeLauncher + $reinstallLauncher
 } elseif ($hits.Review -or $scan.Issues -or (!$scan.DebugLogs -and !$scan.CacheFiles -and !$scan.PayloadFiles)) {
     Write-Report '판정 보류. 읽을 수 있는 자료가 부족하거나 추가로 확인할 항목이 있습니다.' -Show
     $steps = @('니케를 사용했던 Windows 계정인지 확인하세요. 설치 위치를 안다면 니케 설치 폴더를 Run-Nikke-Check.bat 위로 끌어 놓아 다시 확인하세요.')
@@ -389,6 +400,10 @@ if ($steps.Count) {
         Write-Report ('{0}. {1}' -f ($index + 1), $steps[$index]) -Show
     }
 }
+if ($affectedCaches.Count) {
+    Write-Report "`n흔적이 나온 런처 캐시" -Show
+    foreach ($cache in $affectedCaches) { Write-Report $cache -Show }
+}
 
 $lines.AddRange($details)
 Write-Report "`n검사 범위와 참고 자료"
@@ -399,6 +414,9 @@ Write-Report '남아 있는 기록을 확인하는 점검입니다. 흔적이 �
 Write-Report '공유하기 전에 설치 경로에 이름 등 개인정보가 있는지 확인하세요.'
 Write-Report '판정 기준 https://github.com/MotherSphere/NIKKE-Launcher-Check/blob/main/docs/incident.md#indicators-of-compromise'
 Write-Report '사건 분석 https://gist.github.com/MotherSphere/d6c049a09ba8ac3085c51ee9df24a4e5'
+Write-Report '니케 공식 공지 https://x.com/NIKKE_kr/status/2117817404399210900'
+Write-Report 'Windows 앱 제거 https://support.microsoft.com/en-gb/windows/apps/uninstall-or-remove-apps-and-programs-in-windows'
+Write-Report 'Windows 보안 보호 기록 https://support.microsoft.com/en-us/windows/security/windows-security/protection-history-in-the-windows-security-app'
 Write-Report 'Microsoft Windows 설치 안내 https://support.microsoft.com/en-us/windows/deployment/install-upgrade/reinstall-windows-with-the-installation-media'
 
 try {
