@@ -3,7 +3,9 @@
 [CmdletBinding()]
 param(
     [string]$InstallPath,
-    [string]$LogDirectory
+    [string]$LogDirectory,
+    [switch]$OfferRemediation,
+    [string]$RestoreBackup
 )
 
 $ErrorActionPreference = 'Stop'
@@ -12,6 +14,10 @@ $lines = [System.Collections.Generic.List[string]]::new()
 $hits = [ordered]@{ Exposure = 0; Request = 0; Download = 0; Execution = 0; Persistence = 0; Review = 0 }
 $scan = @{ Issues = 0; DebugLogs = 0; CacheFiles = 0; PayloadFiles = 0 }
 $affectedCaches = [System.Collections.Generic.List[string]]::new()
+$payloadCandidates = [ordered]@{}
+$registeredDlls = [System.Collections.Generic.List[object]]::new()
+$chromeClsidPath = 'Software\Classes\CLSID\{E77CC89B-7401-4C04-8CED-149DB35ADD04}'
+$chromeValuePath = "$chromeClsidPath\InprocServer32"
 $loaderUrl = '(?i)https?://(?:analytics\.)?insightjs\.(?:com|org)(?=[:/\s"''\x00]|$)'
 $payloadUrl = '(?i)(?:https?://)?analytics\.insightjs\.com/comm/assets/insight\.bundle\b'
 $loaderCacheNames = 'dd65fa4d61079e7e_0', 'ce2fd3f1007a9fe9_0', '1416c638b3830103_0', 'fd520c7c0f65c2d7_0'
@@ -142,6 +148,7 @@ function Test-LauncherFile([IO.FileInfo]$File, [string]$Kind) {
 
     if ($payloadHashes.ContainsKey($bytes.Length) -and (Get-BytesHash $bytes) -eq $payloadHashes[$bytes.Length]) {
         Add-Finding Download '알려진 악성코드와 파일 지문(SHA-256)이 일치합니다.' $path
+        if ($OfferRemediation -and $Kind -eq 'Tinyget') { $payloadCandidates[$path] = $payloadHashes[$bytes.Length] }
         return
     }
     if ($Kind -eq 'Tinyget' -and $bytes.Length -ge 3 -and $bytes[0] -eq 27 -and $bytes[1] -eq 76 -and $bytes[2] -eq 74) {
@@ -152,6 +159,7 @@ function Test-LauncherFile([IO.FileInfo]$File, [string]$Kind) {
     if ($Kind -eq 'Debug') {
         $count = [regex]::Matches($content, '(?i)\bk2f_chan\s+registered\b|\bagent started as\s+\S+').Count
         if ($count) { Add-Finding Execution "런처 로그(debug.log)에 실행 흔적이 $($count)건 있습니다." $path }
+        if ($content -match '(?i)\bk2f_chan\s+registered\b') { $scan.ConfirmedExecution = $true }
     }
     if ($content -match $payloadUrl) { Add-Finding Request '런처 로그에 다운로드 주소가 있습니다.' $path }
     if ($content -match '(?i)\blua downloaded to\s+log[\\/]tinyget[\\/]') {
@@ -232,18 +240,24 @@ function Get-LauncherDirectories {
 }
 
 function Test-ChromePersistence {
-    $clsidPath = 'Software\Classes\CLSID\{E77CC89B-7401-4C04-8CED-149DB35ADD04}'
     foreach ($view in $registryViews) {
-        $label = "HKCU\$clsidPath [$view]"
+        $label = "HKCU\$chromeClsidPath [$view]"
         $baseKey = $key = $server = $null
         try {
             $baseKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::CurrentUser, $view)
-            $key = $baseKey.OpenSubKey($clsidPath, $false)
+            $key = $baseKey.OpenSubKey($chromeClsidPath, $false)
             if (!$key) { Write-Report "[미발견] $label"; continue }
             $server = $key.OpenSubKey('InprocServer32', $false)
             $target = if ($server) { [string]$server.GetValue('', '', [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) }
             if ($target -match '(?i)[\\/]platform_experience_helper\.dll"?\s*$') {
                 Add-Finding Persistence 'Chrome에서 의심 파일을 불러오도록 등록돼 있습니다.' $label
+                if ($OfferRemediation) {
+                    $kind = $server.GetValueKind('')
+                    $dllPath = [Environment]::ExpandEnvironmentVariables($target.Trim('"'))
+                    if ($kind -in 'String','ExpandString' -and (Test-ActionChromePath $dllPath)) {
+                        $registeredDlls.Add(@{ Kind = 'Registry'; Path = "HKCU\$chromeValuePath"; Dll = $dllPath; Value = $target; ValueKind = [string]$kind; View = [string]$view })
+                    }
+                }
             } else {
                 Add-Finding Review '관련 레지스트리 항목이 있습니다. 의심 파일과의 연결은 확인되지 않았습니다.' $label
             }
@@ -283,12 +297,313 @@ function Test-ChromePersistence {
     }
 }
 
+
+function Test-ActionChromePath([string]$Path) {
+    $prefix = (Join-Path $responseLocal 'Google\Chrome\User Data\PlatformExperienceHelper') + '\'
+    $Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) -and
+        $Path.Substring($prefix.Length) -match '^[0-9a-f]{64}\\platform_experience_helper\.dll$'
+}
+
+function Assert-LocalActionPath([string]$Path) {
+    if ($Path -notmatch '^[A-Za-z]:\\' -or $Path.Substring(2) -match '[<>:"|?*/\x00-\x1f]|[. ](?:\\|$)' -or
+        [IO.Path]::GetFullPath($Path) -cne $Path -or [IO.DriveInfo]::new($Path.Substring(0, 3)).DriveType -ne 'Fixed') {
+        throw '로컬 고정 드라이브의 정확한 경로를 확인할 수 없습니다.'
+    }
+    for ($part = $Path; $part; $part = [IO.Path]::GetDirectoryName($part)) {
+        try { $entry = Get-Item -LiteralPath $part -Force -ErrorAction Stop }
+        catch [System.Management.Automation.ItemNotFoundException] { continue }
+        if ($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+            throw '경로에 링크 또는 접합점이 있습니다.'
+        }
+    }
+}
+
+function Initialize-ResponseTools {
+    if ($PSVersionTable.PSEdition -eq 'Desktop') { Add-Type -AssemblyName System.Security }
+    if ('NikkeCheckedFile' -as [type]) { return }
+
+    # Verify and remove through one handle so a replaced path cannot select a different file.
+    Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
+using Microsoft.Win32.SafeHandles;
+
+public static class NikkeCheckedFile {
+    private const uint GenericRead = 0x80000000;
+    private const uint GenericWrite = 0x40000000;
+    private const uint DeleteAccess = 0x00010000;
+    private const uint OpenReparsePoint = 0x00200000;
+    private const uint OpenExisting = 3;
+    private const uint CreateNew = 1;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FileInfo {
+        public uint Attributes;
+        public System.Runtime.InteropServices.ComTypes.FILETIME Creation, Access, Write;
+        public uint Volume, SizeHigh, SizeLow, Links, IndexHigh, IndexLow;
+    }
+
+    [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+    private static extern SafeFileHandle CreateFileW(string name, uint access, uint share, IntPtr security,
+        uint disposition, uint flags, IntPtr template);
+    [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+    private static extern uint GetFinalPathNameByHandleW(SafeFileHandle handle, StringBuilder path, uint size, uint flags);
+    [DllImport("kernel32.dll", SetLastError=true)]
+    private static extern bool GetFileInformationByHandle(SafeFileHandle handle, out FileInfo info);
+    [DllImport("kernel32.dll", SetLastError=true)]
+    private static extern bool SetFileInformationByHandle(SafeFileHandle handle, int kind, ref byte info, uint size);
+
+    private static void CheckHandle(SafeFileHandle handle, string path) {
+        FileInfo info;
+        if (!GetFileInformationByHandle(handle, out info)) throw new Win32Exception();
+        if ((info.Attributes & 0x410) != 0 || info.Links != 1)
+            throw new IOException("The target is a directory, reparse point, or hard-linked file.");
+        var final = new StringBuilder(32768);
+        uint length = GetFinalPathNameByHandleW(handle, final, (uint)final.Capacity, 0);
+        if (length == 0) throw new Win32Exception();
+        if (length >= final.Capacity || !String.Equals(final.ToString(), @"\\?\" + path, StringComparison.OrdinalIgnoreCase))
+            throw new IOException("The opened file does not have the approved path.");
+    }
+
+    public static FileStream OpenForQuarantine(string path) {
+        var handle = CreateFileW(path, GenericRead | DeleteAccess, 0, IntPtr.Zero, OpenExisting, OpenReparsePoint, IntPtr.Zero);
+        try {
+            if (handle.IsInvalid) throw new Win32Exception();
+            CheckHandle(handle, path);
+            return new FileStream(handle, FileAccess.Read);
+        } catch { handle.Dispose(); throw; }
+    }
+
+    private static void MarkForRemoval(SafeFileHandle handle) {
+        byte remove = 1;
+        if (!SetFileInformationByHandle(handle, 4, ref remove, 1)) throw new Win32Exception();
+    }
+
+    public static void Quarantine(FileStream file) { MarkForRemoval(file.SafeFileHandle); }
+
+    public static void Restore(string path, byte[] bytes) {
+        using (var handle = CreateFileW(path, GenericRead | GenericWrite | DeleteAccess, 0, IntPtr.Zero, CreateNew, OpenReparsePoint, IntPtr.Zero)) {
+            if (handle.IsInvalid) throw new Win32Exception();
+            try { CheckHandle(handle, path); }
+            catch { MarkForRemoval(handle); throw; }
+            using (var stream = new FileStream(handle, FileAccess.Write)) {
+                try {
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Flush(true);
+                } catch { MarkForRemoval(handle); throw; }
+            }
+        }
+    }
+}
+'@
+}
+
+function Save-ActionBackup([System.Collections.IDictionary]$Record, [string]$Path) {
+    Assert-LocalActionPath $Path
+    $null = [IO.Directory]::CreateDirectory($backupRoot)
+    Assert-LocalActionPath $Path
+    $Record['Version'] = 1
+    $bytes = [Text.Encoding]::UTF8.GetBytes(($Record | ConvertTo-Json -Compress))
+    $encrypted = [Security.Cryptography.ProtectedData]::Protect($bytes, $null, 'CurrentUser')
+    $stream = [IO.File]::Open($Path, 'CreateNew', 'Write', 'None')
+    try {
+        $stream.Write($encrypted, 0, $encrypted.Length)
+        $stream.Flush($true)
+    } finally { $stream.Dispose() }
+    if ((Get-FileHash -LiteralPath $Path).Hash -ne (Get-BytesHash $encrypted)) {
+        throw '암호화 백업을 확인할 수 없습니다.'
+    }
+}
+
+function Get-RemediationItems {
+    $verifiedDlls = [ordered]@{}
+    foreach ($entry in $registeredDlls) {
+        if ($verifiedDlls.Contains($entry.Dll)) { continue }
+        $file = Get-ScanItem $entry.Dll
+        if (!$file -or $file.PSIsContainer) { continue }
+        $bytes = Read-Artifact $file
+        if ($bytes.Length -ge 2 -and $bytes.Length -le 1MB -and $bytes[0] -eq 77 -and $bytes[1] -eq 90) {
+            $hash = Get-BytesHash $bytes
+            if ($hash -eq $file.Directory.Name) { $verifiedDlls[$entry.Dll] = $hash }
+        }
+    }
+
+    foreach ($entry in $registeredDlls) {
+        if ($scan.ConfirmedExecution -or $verifiedDlls.Contains($entry.Dll)) { $entry }
+    }
+    foreach ($path in $verifiedDlls.Keys) {
+        @{ Kind = 'File'; Path = $path; Hash = $verifiedDlls[$path]; Evidence = 'Chrome에 등록된 DLL입니다. 파일 지문이 상위 폴더 이름과 일치합니다.' }
+    }
+    if ($scan.ConfirmedExecution -or $verifiedDlls.Count) {
+        foreach ($path in $payloadCandidates.Keys) {
+            @{ Kind = 'File'; Path = $path; Hash = $payloadCandidates[$path]; Evidence = '공개된 악성코드와 파일 지문이 일치합니다.' }
+        }
+    }
+}
+
+function Invoke-RegistryAction([System.Collections.IDictionary]$Record, [string]$Backup, [switch]$Restore) {
+    if ($Record.Path -cne "HKCU\$chromeValuePath" -or $Record.View -notin $registryViews -or
+        $Record.ValueKind -notin 'String','ExpandString' -or
+        [Environment]::ExpandEnvironmentVariables(([string]$Record.Value).Trim('"')) -cne $Record.Dll -or
+        !(Test-ActionChromePath $Record.Dll)) {
+        throw '확인된 레지스트리 대상과 일치하지 않습니다.'
+    }
+    Assert-LocalActionPath $Record.Dll
+    $view = [Microsoft.Win32.RegistryView]$Record.View
+    $kind = [Microsoft.Win32.RegistryValueKind]$Record.ValueKind
+    $baseKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey('CurrentUser', $view)
+    $key = $null
+    try {
+        $key = $baseKey.OpenSubKey($chromeValuePath, $true)
+        if (!$key) { throw '레지스트리 키가 없거나 열 수 없습니다.' }
+        $options = [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames
+        if ($Restore) {
+            if ('' -in $key.GetValueNames()) { throw '기본값이 이미 있어 복구를 건너뜁니다.' }
+            $key.SetValue('', $Record.Value, $kind)
+            if ($key.GetValue('', $null, $options) -cne $Record.Value -or $key.GetValueKind('') -ne $kind) {
+                throw '기본값이 복구됐는지 확인할 수 없습니다.'
+            }
+        } else {
+            if ($key.GetValue('', $null, $options) -cne $Record.Value -or $key.GetValueKind('') -ne $kind) {
+                throw '점검한 뒤 레지스트리 값이 바뀌었습니다.'
+            }
+            Save-ActionBackup $Record $Backup
+            if ($key.GetValue('', $null, $options) -cne $Record.Value -or $key.GetValueKind('') -ne $kind) {
+                throw '백업하는 동안 레지스트리 값이 바뀌었습니다.'
+            }
+            $key.DeleteValue('', $true)
+            if ('' -in $key.GetValueNames()) { throw '기본값이 제거됐는지 확인할 수 없습니다.' }
+        }
+    } finally {
+        if ($key) { $key.Dispose() }
+        $baseKey.Dispose()
+    }
+}
+
+function Show-RecoveryCommand([string]$Path) {
+    Write-Host '오탐으로 확인되면 이 PC의 같은 Windows 계정에서 점검 도구 폴더를 열고 아래 명령을 실행하세요.'
+    Write-Host ('.\Run-Nikke-Check.bat -Restore "{0}"' -f $Path)
+}
+
+function Invoke-ConfirmedActions {
+    $items = @(Get-RemediationItems)
+    if (!$items.Count) {
+        Write-Report '격리하거나 제거할 수 있을 만큼 근거가 확인된 항목이 없습니다.' -Show
+        return
+    }
+    Write-Report '선택 조치. 각 항목에서 Enter를 누르면 건너뜁니다.' -Show
+    Write-Report '인터넷 연결을 끊고 니케 런처와 Chrome을 닫은 뒤 진행하세요. 회사 PC라면 보안 담당자에게 먼저 연락하세요.' -Show
+    foreach ($item in $items) {
+        $backup = Join-Path $backupRoot ([Guid]::NewGuid().ToString('N') + '.nikke-backup')
+        Write-Host ''
+        if ($item.Kind -eq 'File') {
+            Write-Host "파일 격리  $($item.Path)"
+            Write-Host $item.Evidence
+            Write-Host "SHA-256  $($item.Hash)"
+            Write-Host '암호화 백업을 확인한 뒤 원래 위치의 파일을 제거합니다.'
+        } else {
+            Write-Host "기본값 제거  $($item.Path) [$($item.View)]"
+            Write-Host "이 값이 가리키는 DLL  $($item.Dll)"
+            Write-Host '현재 사용자의 (기본값) 한 개를 백업한 뒤 제거합니다.'
+        }
+        Write-Host "백업 파일  $backup"
+        Show-RecoveryCommand $backup
+        if ((Read-Host '이 항목을 처리하려면 Y를 입력하세요') -ine 'Y') {
+            Write-Report "건너뜀  $($item.Path)" -Show
+            continue
+        }
+        try {
+            Initialize-ResponseTools
+            if ($item.Kind -eq 'File') {
+                Assert-LocalActionPath $item.Path
+                $stream = [NikkeCheckedFile]::OpenForQuarantine($item.Path)
+                try {
+                    if ($stream.Length -gt 1MB) { throw '파일 크기가 확인 범위를 벗어났습니다.' }
+                    $bytes = [byte[]]::new([int]$stream.Length)
+                    for ($offset = 0; $offset -lt $bytes.Length; $offset += $read) {
+                        $read = $stream.Read($bytes, $offset, $bytes.Length - $offset)
+                        if (!$read) { throw '파일을 끝까지 읽을 수 없습니다.' }
+                    }
+                    if ((Get-BytesHash $bytes) -ne $item.Hash) { throw '점검한 뒤 파일 내용이 바뀌었습니다.' }
+                    Save-ActionBackup @{ Kind = 'File'; Path = $item.Path; Hash = $item.Hash; Data = [Convert]::ToBase64String($bytes) } $backup
+                    [NikkeCheckedFile]::Quarantine($stream)
+                } finally { $stream.Dispose() }
+                if (Test-Path -LiteralPath $item.Path) { throw '원래 위치에 파일이 남았거나 다시 생겼습니다.' }
+            } else {
+                Invoke-RegistryAction $item $backup
+            }
+            Write-Report "처리 완료  $($item.Path)" -Show
+        } catch {
+            Write-Report "미완료  $($item.Path) | $($_.Exception.GetBaseException().Message)" -Show
+            $scan.Issues++
+        } finally {
+            if ([IO.File]::Exists($backup)) { Write-Report "백업  $backup" -Show }
+        }
+    }
+}
+
+function Restore-ActionBackup([string]$Path) {
+    if ([IO.Path]::GetDirectoryName($Path) -ine $backupRoot -or [IO.Path]::GetFileName($Path) -notmatch '^[0-9a-f]{32}\.nikke-backup$') {
+        throw '점검 도구가 안내한 백업 파일 경로를 입력하세요.'
+    }
+    Assert-LocalActionPath $Path
+    $file = Get-Item -LiteralPath $Path -Force
+    if ($file.PSIsContainer -or $file.Length -gt 2MB) { throw '읽을 수 있는 점검 도구 백업이 아닙니다.' }
+    Initialize-ResponseTools
+    $encrypted = [IO.File]::ReadAllBytes($Path)
+    $plain = [Security.Cryptography.ProtectedData]::Unprotect($encrypted, $null, 'CurrentUser')
+    $data = [Text.Encoding]::UTF8.GetString($plain) | ConvertFrom-Json
+    if ($data.Version -ne 1 -or $data.Kind -notin 'File','Registry') { throw '백업 형식을 확인할 수 없습니다.' }
+    if ($data.Kind -eq 'File') {
+        Assert-LocalActionPath $data.Path
+        $bytes = [Convert]::FromBase64String($data.Data)
+        $knownPayload = $payloadHashes.ContainsKey($bytes.Length) -and $payloadHashes[$bytes.Length] -eq $data.Hash -and
+            $data.Path -match '\\log\\tinyget\\'
+        $knownDll = (Test-ActionChromePath $data.Path) -and
+            [IO.Path]::GetFileName([IO.Path]::GetDirectoryName($data.Path)) -eq $data.Hash
+        if ($bytes.Length -gt 1MB -or (Get-BytesHash $bytes) -ne $data.Hash -or !($knownPayload -or $knownDll)) {
+            throw '백업의 파일 지문이나 원래 경로가 일치하지 않습니다.'
+        }
+        Write-Host "파일 복구  $($data.Path)"
+    } else {
+        Write-Host "기본값 복구  $($data.Path) [$($data.View)]"
+        Write-Host "이 값이 가리키는 DLL  $($data.Dll)"
+    }
+    Write-Host '오탐으로 확인된 경우에만 복구하세요. 원래 위치에 파일이나 값이 있으면 덮어쓰지 않습니다.'
+    if ((Read-Host '이 항목을 복구하려면 RESTORE를 입력하세요') -cne 'RESTORE') {
+        Write-Host '복구를 취소했습니다.'
+        return
+    }
+    if ($data.Kind -eq 'File') {
+        Assert-LocalActionPath $data.Path
+        [NikkeCheckedFile]::Restore($data.Path, $bytes)
+    } else {
+        $record = @{}
+        foreach ($property in $data.PSObject.Properties) { $record[$property.Name] = $property.Value }
+        Invoke-RegistryAction $record -Restore
+    }
+    Write-Host '복구했습니다.'
+}
+
 if ($env:OS -ne 'Windows_NT') { throw 'Windows에서 실행하세요.' }
-$localPaths = @([Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData),
+$responseLocal = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
+$localPaths = @($responseLocal,
     (Join-Path $env:USERPROFILE 'AppData\Local')) | Where-Object { $_ } | Select-Object -Unique
 $roamingPath = [Environment]::GetFolderPath([Environment+SpecialFolder]::ApplicationData)
 $registryViews = @([Microsoft.Win32.RegistryView]::Registry32)
 if ([Environment]::Is64BitOperatingSystem) { $registryViews += [Microsoft.Win32.RegistryView]::Registry64 }
+$backupRoot = Join-Path $responseLocal 'NikkeLauncherChecker\Backups'
+if ($RestoreBackup) {
+    try { Restore-ActionBackup $RestoreBackup }
+    catch {
+        Write-Host "복구 미완료  $($_.Exception.GetBaseException().Message)"
+        exit 2
+    }
+    exit 0
+}
 Write-Report '니케 PC 런처 감염 점검' -Show
 Write-Report '제작자 Serio_ai' -Show
 Write-Report ('점검 시각 {0:yyyy-MM-dd HH:mm:ss zzz}' -f [DateTimeOffset]::Now)
@@ -428,6 +743,19 @@ try {
 } catch {
     Write-Host '점검 로그를 저장하지 못했습니다. 두 파일을 바탕 화면처럼 파일을 저장할 수 있는 폴더에 두고 다시 실행하세요.'
     exit 2
+}
+if ($OfferRemediation -and ($scan.ConfirmedExecution -or $registeredDlls.Count)) {
+    $firstActionLine = $lines.Count
+    try { Invoke-ConfirmedActions }
+    catch {
+        Write-Report "선택 조치 중단  $($_.Exception.GetBaseException().Message)" -Show
+        $scan.Issues++
+    }
+    try { [IO.File]::AppendAllLines($logPath, $lines.GetRange($firstActionLine, $lines.Count - $firstActionLine)) }
+    catch {
+        Write-Host '조치 결과를 점검 로그에 덧붙이지 못했습니다. 화면의 백업 경로를 보관하세요.'
+        exit 2
+    }
 }
 if ($scan.Issues) { exit 1 }
 exit 0

@@ -8,10 +8,17 @@ if not exist "%SCRIPT%" (
     pause
     exit /b 2
 )
-if "%~1"=="" (
-    "%PS%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%"
+if /i "%~1"=="-Restore" (
+    if "%~2"=="" (
+        echo Run-Nikke-Check.bat -Restore "path-to-backup.nikke-backup"
+        pause
+        exit /b 2
+    )
+    "%PS%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%" -RestoreBackup "%~f2"
+) else if "%~1"=="" (
+    "%PS%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%" -OfferRemediation
 ) else (
-    "%PS%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%" -InstallPath "%~f1\."
+    "%PS%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%" -OfferRemediation -InstallPath "%~f1\."
 )
 set "RESULT=%ERRORLEVEL%"
 pause
