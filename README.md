@@ -2,7 +2,7 @@
 
 니케 PC 런처 침해 사건의 알려진 흔적을 Windows에서 확인하는 도구입니다. 제작자는 **Serio_ai**입니다.
 
-[설명 페이지](https://burntgogi.github.io/nikke-launcher-checker/) · [ZIP 받기](https://github.com/Burntgogi/nikke-launcher-checker/archive/refs/heads/main.zip)
+[설명 페이지](https://burntgogi.github.io/nikke-launcher-checker/) · [점검 도구 ZIP 받기](https://burntgogi.github.io/nikke-launcher-checker/Nikke-Launcher-Checker.zip)
 
 ![작동 순서. 배치 파일 실행, 현재 계정의 런처와 Chrome 기록 읽기, 결과 표시와 로그 저장.](docs/check-flow.svg)
 
