@@ -4,7 +4,7 @@
 
 [설명 페이지](https://burntgogi.github.io/nikke-launcher-checker/) · [점검 도구 ZIP 받기](https://burntgogi.github.io/nikke-launcher-checker/Nikke-Launcher-Checker.zip)
 
-![작동 순서. 배치 파일 실행, 현재 계정의 런처와 Chrome 기록 읽기, 결과 표시와 로그 저장.](docs/check-flow.svg)
+![읽기 전용 점검 후 결과를 저장합니다. 감염 근거와 조치 대상이 있으면 정확한 경로, 백업 위치, 복구 명령을 보여 줍니다. Y를 입력한 항목만 백업한 뒤 파일을 격리하거나 Chrome 자동 실행 기본값을 제거합니다.](docs/check-flow.svg)
 
 ## 실행
 

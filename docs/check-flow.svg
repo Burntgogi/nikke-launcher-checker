@@ -1,23 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 604 370" role="img" aria-labelledby="flow-title flow-desc">
-  <title id="flow-title">니케 런처 체커 작동 순서</title>
-  <desc id="flow-desc">배치 파일을 열면 PowerShell이 런처 로그와 캐시, Chrome 의심 파일과 사용자 레지스트리를 읽는다. 가장 강한 흔적에 맞춰 결과와 대응 방법을 보여 주고 점검 로그를 저장한다.</desc>
-  <rect x="1" y="1" width="602" height="368" rx="24" fill="#f1f4ff" stroke="#dce2f6" stroke-width="2"/>
-  <path d="M55 86v51m0 73v50" fill="none" stroke="#6474bc" stroke-width="3"/>
-  <path d="m49 128 6 8 6-8m-12 123 6 8 6-8" fill="none" stroke="#6474bc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <g fill="#374bb0">
-    <circle cx="55" cy="67" r="21"/><circle cx="55" cy="177" r="21"/><circle cx="55" cy="286" r="21"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="770" viewBox="0 0 680 770" role="img" aria-labelledby="flow-title flow-desc" xml:lang="ko">
+  <title id="flow-title">니케 런처 체커의 점검과 선택 조치</title>
+  <desc id="flow-desc">배치 파일이 읽기 전용 점검을 실행하고 결과를 저장한다. 감염 근거와 조치 대상이 있으면 항목별 경로, 백업 위치, 복구 명령을 보여 준다. Enter는 건너뛰고 Y는 해당 항목만 다시 확인하고 백업한 뒤 처리한다. 파일은 격리하고 Chrome에서 의심 DLL을 불러오는 현재 계정의 레지스트리 기본값은 제거할 수 있다. 오탐이면 같은 PC와 Windows 계정에서 복구 명령을 실행한다.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#5369a8"/>
+    </marker>
+  </defs>
+  <rect x="1" y="1" width="678" height="768" rx="22" fill="#f4f6fc" stroke="#dce2f1" stroke-width="2"/>
+  <g fill="none" stroke="#5369a8" stroke-width="2.5" marker-end="url(#arrow)">
+    <path d="M340 82v19"/><path d="M340 165v19"/><path d="M340 248v19"/>
+    <path d="M340 331v15H148v17"/><path d="M340 331v15h136v17"/>
+    <path d="M476 435v17H148v16"/><path d="M476 435v33"/>
+    <path d="M476 636v25" stroke-dasharray="5 5"/>
   </g>
-  <g fill="#fff" font-family="system-ui, sans-serif" font-size="20" font-weight="700" text-anchor="middle">
-    <text x="55" y="74">1</text><text x="55" y="184">2</text><text x="55" y="293">3</text>
+  <g fill="#fff" stroke="#d5ddef" stroke-width="1.5">
+    <rect x="28" y="22" width="624" height="60" rx="12"/>
+    <rect x="28" y="104" width="624" height="61" rx="12"/>
+    <rect x="28" y="187" width="624" height="61" rx="12"/>
+    <rect x="28" y="270" width="624" height="61" rx="12" fill="#e8eeff"/>
+    <rect x="28" y="366" width="240" height="69" rx="12"/>
+    <rect x="300" y="366" width="352" height="69" rx="12"/>
+    <rect x="28" y="471" width="240" height="63" rx="12"/>
+    <rect x="300" y="471" width="352" height="165" rx="12" fill="#fff5e9" stroke="#e7cba9"/>
+    <rect x="28" y="664" width="624" height="82" rx="12"/>
   </g>
-  <g fill="#18244b" font-family="Malgun Gothic, Apple SD Gothic Neo, sans-serif" font-size="27" font-weight="700">
-    <text x="94" y="76">배치 파일 실행</text>
-    <text x="94" y="186">현재 계정의 기록 읽기</text>
-    <text x="94" y="295">결과 표시와 로그 저장</text>
-  </g>
-  <g fill="#47557c" font-family="Malgun Gothic, Apple SD Gothic Neo, sans-serif" font-size="21">
-    <text x="94" y="108">Run-Nikke-Check.bat → PowerShell</text>
-    <text x="94" y="218">런처 로그·캐시, Chrome 파일·설정</text>
-    <text x="94" y="327">가장 강한 흔적과 지금 할 일 안내</text>
+  <g font-family="'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', sans-serif">
+    <g fill="#172752" font-size="22" font-weight="700">
+      <text x="48" y="49">1. 배치 파일 실행</text>
+      <text x="48" y="131">2. 읽기 전용 점검</text>
+      <text x="48" y="214">3. 결과 표시와 점검 로그 저장</text>
+      <text x="48" y="297">4. 조치할 근거와 대상이 있나요?</text>
+      <text x="46" y="393">후보 없음</text>
+      <text x="318" y="393">후보 있음 · 항목별 확인</text>
+      <text x="46" y="498">Enter · 건너뛰기</text>
+      <text x="318" y="498">Y · 이 항목만 처리</text>
+      <text x="48" y="692">오탐일 때 복구</text>
+    </g>
+    <g fill="#405178" font-size="17">
+      <text x="48" y="71">Run-Nikke-Check.bat → Check-Nikke.ps1</text>
+      <text x="48" y="154">현재 계정의 런처 로그·캐시와 Chrome 파일·레지스트리 확인</text>
+      <text x="48" y="237">발견한 흔적과 지금 할 일 안내</text>
+      <text x="48" y="320">런처 실행 기록 또는 Chrome 등록 경로와 DLL 지문으로 확인</text>
+      <text x="46" y="418">점검 결과를 남기고 종료</text>
+      <text x="318" y="418">대상 경로 · 백업 위치 · 복구 명령 표시</text>
+      <text x="46" y="522">다음 후보 확인</text>
+      <text x="318" y="523">대상을 다시 확인하고 암호화 백업</text>
+      <text x="318" y="608">대상이 바뀌거나 파일이 잠겨 있으면</text>
+      <text x="318" y="628">미완료로 표시</text>
+      <text x="48" y="715">같은 PC와 Windows 계정에서 복구 명령 실행 → RESTORE 입력</text>
+      <text x="48" y="736">원래 위치에 파일이나 값이 있으면 복구 중단</text>
+    </g>
+    <g fill="#713d17" font-size="17" font-weight="700">
+      <text x="318" y="553">파일 격리 · 원래 위치에서 제거</text>
+      <text x="318" y="577">Chrome 자동 실행 · 기본값 하나 제거</text>
+    </g>
   </g>
 </svg>
