@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Check Windows for known traces of the NIKKE PC launcher incident and see what to do next.">
+  <title>NIKKE Launcher Checker · Check the NIKKE PC launcher</title>
+  <link rel="alternate" hreflang="ko" href="https://burntgogi.github.io/nikke-launcher-checker/">
+  <link rel="alternate" hreflang="en" href="https://burntgogi.github.io/nikke-launcher-checker/en/">
+  <link rel="alternate" hreflang="ja" href="https://burntgogi.github.io/nikke-launcher-checker/ja/">
+  <link rel="alternate" hreflang="x-default" href="https://burntgogi.github.io/nikke-launcher-checker/">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <span class="brand">NIKKE Launcher Checker</span>
+      <nav aria-label="On this page"><a href="#run">How to run</a><a href="#results">Read the results</a></nav>
+      <nav aria-label="Language">
+        <a href="../" lang="ko" hreflang="ko">한국어</a>
+        <a href="../en/" lang="en" hreflang="en" aria-current="page">English</a>
+        <a href="../ja/" lang="ja" hreflang="ja">日本語</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <div>
+        <h1>NIKKE Launcher<br>Checker</h1>
+        <p class="author">By Serio_ai</p>
+        <p class="lead">Check Windows records for signs of exposure, downloads, and malware execution.</p>
+        <div class="actions">
+          <a class="download" href="https://burntgogi.github.io/nikke-launcher-checker/Nikke-Launcher-Checker.zip" download>Download the ZIP</a>
+          <a href="https://github.com/Burntgogi/nikke-launcher-checker#readme">GitHub README</a>
+        </div>
+      </div>
+      <figure>
+        <img src="check-flow.svg" width="680" height="770" alt="A read-only scan saves the results. If an item qualifies for action, the tool shows its path, the backup location and the restore command, and acts only on confirmation.">
+        <figcaption><a href="check-flow.svg">Open the full-size diagram</a></figcaption>
+      </figure>
+    </div>
+    <section id="run">
+      <h2>How to run</h2>
+      <ol>
+        <li>Extract the ZIP and keep <code>Run-Nikke-Check.bat</code> and <code>Check-Nikke.ps1</code> in the same folder.</li>
+        <li>Sign in to the Windows account you used for NIKKE and double-click the batch file. If you know where NIKKE is installed, you can also drag that folder onto the batch file.</li>
+        <li>Read the results and next steps on screen. The <code>logs</code> folder contains the detailed report.</li>
+      </ol>
+      <p>The screen and log follow your Windows display language. The tool supports Korean, English, and Japanese and falls back to English. To pick English, open the tool folder in File Explorer, type <code>powershell</code> in the address bar, then run the command below.</p>
+      <pre><code>.\Run-Nikke-Check.bat -Language en</code></pre>
+      <p>The scan reads existing records and saves a log. If there is enough evidence, you can quarantine a file or stop Chrome from loading a suspicious DLL. Check the exact path, backup location, and restore command on screen. Type <code>Y</code> to act on that item or press Enter to skip it.</p>
+      <p>If you confirm a false positive, sign in to the same Windows account on the same PC. Open the tool folder in File Explorer and type <code>powershell</code> in the address bar. Paste the restore command shown earlier. If the path is correct, type <code>RESTORE</code>. Restore stops if a file or registry value already exists at the original location.</p>
+    </section>
+    <section id="results">
+      <h2>What to do after the scan</h2>
+      <dl class="results">
+        <div><dt>Execution or automatic startup in Chrome</dt><dd>Disconnect from the internet and close the launcher. On another trusted device, change your passwords and sign out all devices. On a personal PC, save the antivirus detection record before removing quarantined threats, and consider a clean Windows install.</dd></div>
+        <div><dt>Download traces</dt><dd>Disconnect from the internet and close the launcher. Save the scan log, run your antivirus, uninstall the launcher, then check again. If the malware may have run, secure your accounts from another device.</dd></div>
+        <div><dt>Exposure or download address</dt><dd>Close the launcher and save the scan log. On a personal PC, uninstall NIKKE in Windows Settings. If a launcher cache folder listed in the results remains, delete that folder. Check the official notice for the fixed launcher, then reinstall from the official source.</dd></div>
+        <div><dt>Inconclusive</dt><dd>Run the scan again from the Windows account you used for NIKKE and specify the installation folder.</dd></div>
+        <div><dt>No known traces found</dt><dd>The scan found no known traces in the records it could read. Deleted or unreadable records are outside its coverage.</dd></div>
+      </dl>
+      <p>On a work PC, contact your security team before cleanup. On a personal PC, compare paths in the scan log with the antivirus detection record before removing a quarantined file. <a href="https://support.microsoft.com/en-gb/windows/apps/uninstall-or-remove-apps-and-programs-in-windows">Uninstall apps in Windows</a> · <a href="https://support.microsoft.com/en-us/windows/security/windows-security/protection-history-in-the-windows-security-app">Windows Security Protection history</a></p>
+    </section>
+  </main>
+  <footer>
+    <div class="wrap">
+      <p>These results cannot establish whether a past infection or data theft occurred. Check paths for personal information before sharing the log.</p>
+      <p><a href="https://github.com/MotherSphere/NIKKE-Launcher-Check/blob/main/docs/incident.md#indicators-of-compromise">Indicators used by the checker</a> · <a href="https://support.microsoft.com/en-us/windows/deployment/install-upgrade/reinstall-windows-with-the-installation-media">Microsoft's Windows clean install guide</a></p>
+    </div>
+  </footer>
+</body>
+</html>

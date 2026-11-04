@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="770" viewBox="0 0 680 770" role="img" aria-labelledby="flow-title flow-desc" xml:lang="en">
+  <title id="flow-title">Checker scan and optional actions</title>
+  <desc id="flow-desc">The batch file runs a read-only scan and saves the results. If the evidence qualifies an item for action, the tool shows its path, backup location, and restore command. Enter skips the item. Y rechecks and backs up the item, then quarantines the file or removes the current user&apos;s registry default value that loads the DLL in Chrome. Restore a confirmed false positive on the same PC using the same Windows account.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#5369a8"/>
+    </marker>
+  </defs>
+  <rect x="1" y="1" width="678" height="768" rx="22" fill="#f4f6fc" stroke="#dce2f1" stroke-width="2"/>
+  <g fill="none" stroke="#5369a8" stroke-width="2.5" marker-end="url(#arrow)">
+    <path d="M340 82v19"/><path d="M340 165v19"/><path d="M340 248v19"/>
+    <path d="M340 331v15H148v17"/><path d="M340 331v15h136v17"/>
+    <path d="M476 435v17H148v16"/><path d="M476 435v33"/>
+    <path d="M476 636v25" stroke-dasharray="5 5"/>
+  </g>
+  <g fill="#fff" stroke="#d5ddef" stroke-width="1.5">
+    <rect x="28" y="22" width="624" height="60" rx="12"/>
+    <rect x="28" y="104" width="624" height="61" rx="12"/>
+    <rect x="28" y="187" width="624" height="61" rx="12"/>
+    <rect x="28" y="270" width="624" height="61" rx="12" fill="#e8eeff"/>
+    <rect x="28" y="366" width="240" height="69" rx="12"/>
+    <rect x="300" y="366" width="352" height="69" rx="12"/>
+    <rect x="28" y="471" width="240" height="63" rx="12"/>
+    <rect x="300" y="471" width="352" height="165" rx="12" fill="#fff5e9" stroke="#e7cba9"/>
+    <rect x="28" y="664" width="624" height="82" rx="12"/>
+  </g>
+  <g font-family="'Segoe UI', Arial, sans-serif">
+    <g fill="#172752" font-size="21" font-weight="700">
+      <text x="48" y="49">1. Run the batch file</text>
+      <text x="48" y="131">2. Read-only scan</text>
+      <text x="48" y="214">3. Show results and save a log</text>
+      <text x="48" y="297">4. Is there enough evidence to act?</text>
+      <text x="46" y="393">No eligible items</text>
+      <text x="318" y="393">Eligible items · Review each</text>
+      <text x="46" y="498">Enter · Skip</text>
+      <text x="318" y="498">Y · Act on this item</text>
+      <text x="48" y="692">Restore a confirmed false positive</text>
+    </g>
+    <g fill="#405178" font-size="17">
+      <text x="48" y="71">Run-Nikke-Check.bat → Check-Nikke.ps1</text>
+      <text x="48" y="154">Check launcher logs and cache, Chrome files, and the user registry</text>
+      <text x="48" y="237">See what was found and what to do next</text>
+      <text x="48" y="320">Launcher execution and known file hash, or Chrome DLL path and hash</text>
+      <text x="46" y="418">Save results and exit</text>
+      <text x="318" y="418">Show path, backup and restore command</text>
+      <text x="46" y="522">Review the next item</text>
+      <text x="318" y="523">Recheck and encrypt the backup</text>
+      <text x="318" y="608">Changed targets and locked files</text>
+      <text x="318" y="628">are marked incomplete</text>
+      <text x="48" y="715">Run the restore command on the same PC and account → type RESTORE</text>
+      <text x="48" y="736">Restore stops if the original file or value already exists</text>
+    </g>
+    <g fill="#713d17" font-size="17" font-weight="700">
+      <text x="318" y="553">Quarantine · Remove the original file</text>
+      <text x="318" y="577">Chrome · Remove one default value</text>
+    </g>
+  </g>
+</svg>

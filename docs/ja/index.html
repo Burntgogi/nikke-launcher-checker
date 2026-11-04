@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NIKKE PC 版ランチャーの問題に関連する痕跡を Windows で調べる方法と、結果に応じた対処を案内します。">
+  <title>NIKKE Launcher Checker · NIKKE ランチャー感染チェック</title>
+  <link rel="alternate" hreflang="ko" href="https://burntgogi.github.io/nikke-launcher-checker/">
+  <link rel="alternate" hreflang="en" href="https://burntgogi.github.io/nikke-launcher-checker/en/">
+  <link rel="alternate" hreflang="ja" href="https://burntgogi.github.io/nikke-launcher-checker/ja/">
+  <link rel="alternate" hreflang="x-default" href="https://burntgogi.github.io/nikke-launcher-checker/">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <div class="wrap bar">
+      <span class="brand">NIKKE Launcher Checker</span>
+      <nav aria-label="ページ内メニュー"><a href="#run">使い方</a><a href="#results">結果の見方</a></nav>
+      <nav aria-label="言語を選択">
+        <a href="../" lang="ko" hreflang="ko">한국어</a>
+        <a href="../en/" lang="en" hreflang="en">English</a>
+        <a href="../ja/" lang="ja" hreflang="ja" aria-current="page">日本語</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <div>
+        <h1>NIKKE ランチャー<br>感染チェック</h1>
+        <p class="author">作成者 Serio_ai</p>
+        <p class="lead">Windows に残った記録から、不正なスクリプトに触れた痕跡と、ダウンロードや実行の痕跡を見分けます。</p>
+        <div class="actions">
+          <a class="download" href="https://burntgogi.github.io/nikke-launcher-checker/Nikke-Launcher-Checker.zip" download>点検ツールをダウンロード（ZIP）</a>
+          <a href="https://github.com/Burntgogi/nikke-launcher-checker#readme">GitHub README</a>
+        </div>
+      </div>
+      <figure>
+        <img src="check-flow.svg" width="680" height="770" alt="読み取り専用で点検し、結果を保存します。対処できる項目があれば対象のパス、バックアップ先、復元コマンドを表示し、確認した項目だけを処理します。">
+        <figcaption><a href="check-flow.svg">図を拡大して見る</a></figcaption>
+      </figure>
+    </div>
+    <section id="run">
+      <h2>使い方</h2>
+      <ol>
+        <li>ZIP を展開し、<code>Run-Nikke-Check.bat</code> と <code>Check-Nikke.ps1</code> を同じフォルダーに置きます。</li>
+        <li>NIKKE を使っていた Windows アカウントで、バッチファイルをダブルクリックします。インストール先が分かる場合は、そのフォルダーをバッチファイルにドラッグして実行できます。</li>
+        <li>画面に表示される結果と次の手順を確認します。詳しい記録は <code>logs</code> フォルダーにあります。</li>
+      </ol>
+      <p>画面とログの言語は Windows の表示言語に合わせます。日本語、英語、韓国語に対応し、それ以外は英語で表示します。日本語を指定するには、エクスプローラーでツールのフォルダーを開き、アドレスバーに <code>powershell</code> と入力してから次のコマンドを実行してください。</p>
+      <pre><code>.\Run-Nikke-Check.bat -Language ja</code></pre>
+      <p>最初の点検では記録を読み取り、ログを保存します。感染を裏付ける痕跡が見つかった場合は、ファイルの隔離や Chrome の自動起動設定の解除を選べます。画面に表示された対象のパス、バックアップ先、復元コマンドを確認してください。処理する項目だけ <code>Y</code> と入力し、スキップする場合は Enter キーを押してください。</p>
+      <p>誤検知だと確認できた場合は、同じ PC に同じ Windows アカウントでサインインしてください。ツールのフォルダーを開き、アドレスバーに <code>powershell</code> と入力します。先ほど表示された復元コマンドを貼り付け、パスが正しければ <code>RESTORE</code> と入力してください。元の場所にファイルやレジストリ値がある場合は復元を中止します。</p>
+    </section>
+    <section id="results">
+      <h2>結果に応じた対処</h2>
+      <dl class="results">
+        <div><dt>実行または Chrome での自動起動の痕跡</dt><dd>インターネットを切断し、ランチャーを閉じてください。安全な別の端末でパスワードを変更し、全端末からログアウトしてください。個人の PC では、ウイルス対策ソフトの検出履歴を保存してから隔離済みの脅威を削除し、Windows のクリーンインストールを検討してください。</dd></div>
+        <div><dt>ダウンロードの痕跡</dt><dd>インターネットを切断し、ランチャーを閉じてください。点検ログを保存し、ウイルス対策ソフトでスキャンしてください。ランチャーをアンインストールしてから再点検します。マルウェアが実行された可能性がある場合は、別の端末からアカウントを保護してください。</dd></div>
+        <div><dt>スクリプトに触れた痕跡またはダウンロード先のアドレス</dt><dd>ランチャーを閉じ、点検ログを保存してください。個人の PC では、Windows の設定から NIKKE をアンインストールしてください。結果に表示されたキャッシュフォルダーが残っていれば、そのフォルダーを削除します。修正版の告知を確認してから、公式配布元から再インストールしてください。</dd></div>
+        <div><dt>判定保留</dt><dd>NIKKE を使っていた Windows アカウントでインストール先を指定し、もう一度点検してください。</dd></div>
+        <div><dt>既知の痕跡なし</dt><dd>読み取れた記録からは既知の痕跡は見つかりませんでした。削除済みの記録や読み取れなかった記録は点検範囲外です。</dd></div>
+      </dl>
+      <p>会社の PC では、対処の前にセキュリティ担当者へ連絡してください。個人の PC で隔離済みのファイルを削除する前に、点検ログのパスとウイルス対策ソフトの検出履歴を照合してください。 <a href="https://support.microsoft.com/en-gb/windows/apps/uninstall-or-remove-apps-and-programs-in-windows">Windows でアプリをアンインストール</a> · <a href="https://support.microsoft.com/en-us/windows/security/windows-security/protection-history-in-the-windows-security-app">Windows セキュリティの保護の履歴</a></p>
+    </section>
+  </main>
+  <footer>
+    <div class="wrap">
+      <p>この結果だけでは、過去の感染や情報流出の有無は分かりません。ログを共有する前に、パスに個人情報が含まれていないか確認してください。</p>
+      <p><a href="https://github.com/MotherSphere/NIKKE-Launcher-Check/blob/main/docs/incident.md#indicators-of-compromise">判定に使った侵害指標</a> · <a href="https://support.microsoft.com/en-us/windows/deployment/install-upgrade/reinstall-windows-with-the-installation-media">Microsoft の Windows クリーンインストール手順</a></p>
+    </div>
+  </footer>
+</body>
+</html>

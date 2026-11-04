@@ -40,7 +40,7 @@
       <text x="48" y="71">Run-Nikke-Check.bat → Check-Nikke.ps1</text>
       <text x="48" y="154">현재 계정의 런처 로그·캐시와 Chrome 파일·레지스트리 확인</text>
       <text x="48" y="237">발견한 흔적과 지금 할 일 안내</text>
-      <text x="48" y="320">런처 실행 기록 또는 Chrome 등록 경로와 DLL 지문으로 확인</text>
+      <text x="48" y="320">런처 실행 기록과 악성 파일 지문 또는 Chrome 등록 경로와 DLL 지문</text>
       <text x="46" y="418">점검 결과를 남기고 종료</text>
       <text x="318" y="418">대상 경로 · 백업 위치 · 복구 명령 표시</text>
       <text x="46" y="522">다음 후보 확인</text>

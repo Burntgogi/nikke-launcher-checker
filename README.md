@@ -2,7 +2,7 @@
 
 니케 PC 런처 침해 사건의 알려진 흔적을 Windows에서 확인하는 도구입니다. 제작자는 **Serio_ai**입니다.
 
-[설명 페이지](https://burntgogi.github.io/nikke-launcher-checker/) · [점검 도구 ZIP 받기](https://burntgogi.github.io/nikke-launcher-checker/Nikke-Launcher-Checker.zip)
+[한국어](https://burntgogi.github.io/nikke-launcher-checker/) · [English](https://burntgogi.github.io/nikke-launcher-checker/en/) · [日本語](https://burntgogi.github.io/nikke-launcher-checker/ja/) · [점검 도구 ZIP 받기](https://burntgogi.github.io/nikke-launcher-checker/Nikke-Launcher-Checker.zip)
 
 ![읽기 전용 점검 후 결과를 저장합니다. 감염 근거와 조치 대상이 있으면 정확한 경로, 백업 위치, 복구 명령을 보여 줍니다. Y를 입력한 항목만 백업한 뒤 파일을 격리하거나 Chrome 자동 실행 기본값을 제거합니다.](docs/check-flow.svg)
 
@@ -14,9 +14,19 @@
 
 Windows PowerShell 5.1 이상에서 실행합니다. 기본 점검에서는 현재 계정의 기록을 읽고 점검 로그를 저장합니다. 배치 파일의 실행 정책 옵션은 그 배치가 시작한 PowerShell에만 적용됩니다.
 
+화면과 점검 로그는 Windows 표시 언어에 맞춰 한국어, 영어, 일본어로 나옵니다. 그 밖의 표시 언어에서는 영어를 씁니다. 직접 고르려면 탐색기에서 점검 도구 폴더를 열고 주소창에 `powershell`을 입력한 뒤 아래 명령 중 하나를 실행하세요.
+
+```powershell
+.\Run-Nikke-Check.bat -Language ko
+.\Run-Nikke-Check.bat -Language en
+.\Run-Nikke-Check.bat -Language ja
+```
+
+PowerShell 스크립트에도 같은 옵션을 쓸 수 있습니다. 예를 들어 `.\Check-Nikke.ps1 -Language ja`로 실행하면 일본어로 점검합니다. 배치 파일과 PowerShell 스크립트 모두 `-Language Auto`가 기본값입니다. 판정과 조치 기준, 확인에 쓰는 `Y`와 `RESTORE`는 세 언어에서 같습니다.
+
 ## 파일 격리와 자동 실행 해제
 
-배치 파일은 먼저 읽기 전용으로 점검합니다. 런처의 실행 기록이나 Chrome의 DLL 등록과 파일 지문으로 감염을 뒷받침할 근거가 있으면, 점검이 끝난 뒤 조치할 항목을 보여 줍니다. 항목마다 경로와 백업 위치를 확인하고 `Y`를 입력하세요. Enter를 누르면 그 항목을 건너뜁니다. PowerShell에서 `Check-Nikke.ps1`을 직접 실행할 때는 `-OfferRemediation`을 붙여 선택 조치를 열 수 있습니다.
+배치 파일은 먼저 읽기 전용으로 점검합니다. 런처에 실행 기록이 있고 파일 지문이 알려진 악성 파일과 일치하거나, Chrome에 등록된 의심 DLL의 경로와 지문이 확인되면, 점검이 끝난 뒤 조치할 항목을 보여 줍니다. 항목마다 경로와 백업 위치를 확인하고 `Y`를 입력하세요. Enter를 누르면 그 항목을 건너뜁니다. PowerShell에서 `Check-Nikke.ps1`을 직접 실행할 때는 `-OfferRemediation`을 붙여 선택 조치를 열 수 있습니다.
 
 파일 격리는 암호화 백업을 저장하고 확인한 뒤 원래 경로에서 해당 파일을 제거합니다. 자동 실행 해제는 현재 Windows 계정에서 의심 DLL을 가리키는 레지스트리의 `(기본값)` 하나만 제거합니다. 점검 후 대상이 바뀌거나 다른 프로그램이 파일을 잡고 있으면 미완료로 표시합니다.
 

@@ -5,49 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="니케 PC 런처의 알려진 감염 흔적을 Windows에서 확인하는 방법과 결과별 대응을 설명합니다.">
   <title>NIKKE Launcher Checker · 니케 런처 감염 점검</title>
-  <style>
-    :root { color-scheme: light; --paper: #faf9f5; --ink: #18244b; --body: #3f4a64; --line: #dce0eb; --accent: #374bb0; }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--paper); color: var(--body); font: 16px/1.7 system-ui, 'Malgun Gothic', sans-serif; word-break: keep-all; overflow-wrap: anywhere; }
-    a { color: #2e429e; text-underline-offset: .22em; }
-    a:focus-visible { outline: 3px solid #a54919; outline-offset: 4px; }
-    .wrap { width: min(100% - 2rem, 68rem); margin-inline: auto; }
-    header { border-bottom: 1px solid var(--line); }
-    .bar { min-height: 4rem; display: flex; align-items: center; justify-content: space-between; gap: .6rem 1rem; flex-wrap: wrap; padding-block: .65rem; }
-    .brand { color: var(--ink); font-weight: 750; }
-    nav { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
-    nav a { font-size: .94rem; }
-    .hero { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 5vw, 4.5rem); align-items: center; padding-block: clamp(2.5rem, 7vw, 5.5rem); }
-    h1, h2, dt { color: var(--ink); }
-    h1 { margin: 0; font-size: clamp(2.35rem, 5vw, 4.4rem); line-height: 1.08; letter-spacing: -.06em; }
-    h2 { margin: 0 0 .9rem; font-size: clamp(1.6rem, 4vw, 2.35rem); line-height: 1.2; letter-spacing: -.04em; }
-    .author { margin: .8rem 0 0; font-size: .9rem; }
-    .lead { margin: 1.15rem 0 1.5rem; max-width: 31ch; font-size: 1.13rem; }
-    .actions { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1rem; }
-    .download { background: var(--accent); color: white; font-weight: 700; padding: .65rem 1.05rem; border-radius: .65rem; text-decoration: none; }
-    .download:hover { background: #283b98; }
-    figure { margin: 0; }
-    figure svg { display: block; width: 100%; height: auto; }
-    figcaption { margin-top: .6rem; font-size: .9rem; text-align: right; }
-    section { padding-block: clamp(1.65rem, 4vw, 3.2rem); border-top: 1px solid var(--line); }
-    ol { padding-left: 1.5rem; margin-bottom: .75rem; }
-    li { padding-left: .35rem; margin-bottom: .45rem; }
-    code { color: var(--ink); font-size: .92em; }
-    .results { margin: 0; }
-    .results > div { display: grid; grid-template-columns: minmax(9rem, 14rem) 1fr; gap: .35rem 1rem; padding: .85rem 0; border-bottom: 1px solid var(--line); }
-    .results > div:last-child { border-bottom: 0; }
-    dt { font-weight: 700; }
-    dd { margin: 0; }
-    footer { border-top: 1px solid var(--line); padding-block: 1.25rem 2rem; font-size: .92rem; }
-    footer p { margin: 0 0 .5rem; }
-    @media (max-width: 44rem) { .hero { grid-template-columns: 1fr; } .results > div { grid-template-columns: 1fr; } }
-  </style>
+  <link rel="alternate" hreflang="ko" href="https://burntgogi.github.io/nikke-launcher-checker/">
+  <link rel="alternate" hreflang="en" href="https://burntgogi.github.io/nikke-launcher-checker/en/">
+  <link rel="alternate" hreflang="ja" href="https://burntgogi.github.io/nikke-launcher-checker/ja/">
+  <link rel="alternate" hreflang="x-default" href="https://burntgogi.github.io/nikke-launcher-checker/">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <header>
     <div class="wrap bar">
       <span class="brand">NIKKE Launcher Checker</span>
       <nav aria-label="페이지 목차"><a href="#run">실행 방법</a><a href="#results">결과 읽기</a></nav>
+      <nav aria-label="언어 선택">
+        <a href="./" lang="ko" hreflang="ko" aria-current="page">한국어</a>
+        <a href="./en/" lang="en" hreflang="en">English</a>
+        <a href="./ja/" lang="ja" hreflang="ja">日本語</a>
+      </nav>
     </div>
   </header>
   <main class="wrap">
@@ -62,64 +35,7 @@
         </div>
       </div>
       <figure>
-        <svg xmlns="http://www.w3.org/2000/svg" width="680" height="770" viewBox="0 0 680 770" role="img" aria-labelledby="flow-title flow-desc" xml:lang="ko">
-  <title id="flow-title">니케 런처 체커의 점검과 선택 조치</title>
-  <desc id="flow-desc">배치 파일이 읽기 전용 점검을 실행하고 결과를 저장한다. 감염 근거와 조치 대상이 있으면 항목별 경로, 백업 위치, 복구 명령을 보여 준다. Enter는 건너뛰고 Y는 해당 항목만 다시 확인하고 백업한 뒤 처리한다. 파일은 격리하고 Chrome에서 의심 DLL을 불러오는 현재 계정의 레지스트리 기본값은 제거할 수 있다. 오탐이면 같은 PC와 Windows 계정에서 복구 명령을 실행한다.</desc>
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-      <path d="M0 0L10 5L0 10z" fill="#5369a8"/>
-    </marker>
-  </defs>
-  <rect x="1" y="1" width="678" height="768" rx="22" fill="#f4f6fc" stroke="#dce2f1" stroke-width="2"/>
-  <g fill="none" stroke="#5369a8" stroke-width="2.5" marker-end="url(#arrow)">
-    <path d="M340 82v19"/><path d="M340 165v19"/><path d="M340 248v19"/>
-    <path d="M340 331v15H148v17"/><path d="M340 331v15h136v17"/>
-    <path d="M476 435v17H148v16"/><path d="M476 435v33"/>
-    <path d="M476 636v25" stroke-dasharray="5 5"/>
-  </g>
-  <g fill="#fff" stroke="#d5ddef" stroke-width="1.5">
-    <rect x="28" y="22" width="624" height="60" rx="12"/>
-    <rect x="28" y="104" width="624" height="61" rx="12"/>
-    <rect x="28" y="187" width="624" height="61" rx="12"/>
-    <rect x="28" y="270" width="624" height="61" rx="12" fill="#e8eeff"/>
-    <rect x="28" y="366" width="240" height="69" rx="12"/>
-    <rect x="300" y="366" width="352" height="69" rx="12"/>
-    <rect x="28" y="471" width="240" height="63" rx="12"/>
-    <rect x="300" y="471" width="352" height="165" rx="12" fill="#fff5e9" stroke="#e7cba9"/>
-    <rect x="28" y="664" width="624" height="82" rx="12"/>
-  </g>
-  <g font-family="'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', sans-serif">
-    <g fill="#172752" font-size="22" font-weight="700">
-      <text x="48" y="49">1. 배치 파일 실행</text>
-      <text x="48" y="131">2. 읽기 전용 점검</text>
-      <text x="48" y="214">3. 결과 표시와 점검 로그 저장</text>
-      <text x="48" y="297">4. 조치할 근거와 대상이 있나요?</text>
-      <text x="46" y="393">후보 없음</text>
-      <text x="318" y="393">후보 있음 · 항목별 확인</text>
-      <text x="46" y="498">Enter · 건너뛰기</text>
-      <text x="318" y="498">Y · 이 항목만 처리</text>
-      <text x="48" y="692">오탐일 때 복구</text>
-    </g>
-    <g fill="#405178" font-size="17">
-      <text x="48" y="71">Run-Nikke-Check.bat → Check-Nikke.ps1</text>
-      <text x="48" y="154">현재 계정의 런처 로그·캐시와 Chrome 파일·레지스트리 확인</text>
-      <text x="48" y="237">발견한 흔적과 지금 할 일 안내</text>
-      <text x="48" y="320">런처 실행 기록 또는 Chrome 등록 경로와 DLL 지문으로 확인</text>
-      <text x="46" y="418">점검 결과를 남기고 종료</text>
-      <text x="318" y="418">대상 경로 · 백업 위치 · 복구 명령 표시</text>
-      <text x="46" y="522">다음 후보 확인</text>
-      <text x="318" y="523">대상을 다시 확인하고 암호화 백업</text>
-      <text x="318" y="608">대상이 바뀌거나 파일이 잠겨 있으면</text>
-      <text x="318" y="628">미완료로 표시</text>
-      <text x="48" y="715">같은 PC와 Windows 계정에서 복구 명령 실행 → RESTORE 입력</text>
-      <text x="48" y="736">원래 위치에 파일이나 값이 있으면 복구 중단</text>
-    </g>
-    <g fill="#713d17" font-size="17" font-weight="700">
-      <text x="318" y="553">파일 격리 · 원래 위치에서 제거</text>
-      <text x="318" y="577">Chrome 자동 실행 · 기본값 하나 제거</text>
-    </g>
-  </g>
-</svg>
+        <img src="check-flow.svg" width="680" height="770" alt="읽기 전용 점검 후 결과를 저장합니다. 조치할 근거가 있으면 대상, 백업 위치, 복구 명령을 보여 주고 확인한 항목만 처리합니다.">
         <figcaption><a href="check-flow.svg">작동도 크게 보기</a></figcaption>
       </figure>
     </div>
@@ -130,8 +46,10 @@
         <li>니케를 사용한 Windows 계정에서 배치 파일을 두 번 클릭합니다. 설치 위치를 안다면 설치 폴더를 배치 파일 위로 끌어 놓을 수도 있습니다.</li>
         <li>화면에서 결과와 지금 할 일을 봅니다. 자세한 기록은 <code>logs</code> 폴더에 있습니다.</li>
       </ol>
-      <p>기본 점검에서는 기록을 읽고 로그를 저장합니다. 감염을 뒷받침할 근거가 있으면 파일 격리나 Chrome 자동 실행 해제를 선택할 수 있습니다. 화면에서 정확한 경로와 복구 방법을 확인하고, 처리할 항목에만 <code>Y</code>를 입력하세요. Enter를 누르면 건너뜁니다.</p>
-      <p>오탐으로 확인되면 같은 PC의 같은 Windows 계정에서 화면에 나온 복구 명령을 실행하세요. 되돌릴 경로가 맞으면 <code>RESTORE</code>를 입력하세요. <a href="https://github.com/Burntgogi/nikke-launcher-checker#파일-격리와-자동-실행-해제">복구 안내</a></p>
+      <p>화면과 로그는 Windows 표시 언어를 따릅니다. 한국어·영어·일본어를 지원하며, 그 외에는 영어로 나옵니다. 한국어를 직접 고르려면 탐색기에서 도구 폴더를 열고 주소창에 <code>powershell</code>을 입력한 뒤 아래 명령을 실행하세요.</p>
+      <pre><code>.\Run-Nikke-Check.bat -Language ko</code></pre>
+      <p>기본 점검에서는 기록을 읽고 로그를 저장합니다. 감염을 뒷받침할 근거가 있으면 파일 격리나 Chrome 자동 실행 해제를 선택할 수 있습니다. 화면에 표시된 대상 경로, 백업 위치와 복구 명령을 확인하세요. 처리할 항목에만 <code>Y</code>를 입력하고, 건너뛸 때는 Enter를 누르세요.</p>
+      <p>오탐으로 확인되면 같은 PC의 같은 Windows 계정에서 도구 폴더를 열고 주소창에 <code>powershell</code>을 입력하세요. 화면에 나온 복구 명령을 붙여 넣고, 경로가 맞으면 <code>RESTORE</code>를 입력하세요. 원래 위치에 파일이나 레지스트리 값이 있으면 복구가 중단됩니다.</p>
     </section>
     <section id="results">
       <h2>결과가 나오면</h2>
