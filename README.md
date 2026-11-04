@@ -26,6 +26,22 @@ Windows PowerShell 5.1 이상에서 실행합니다. 도구는 점검 로그만 
 
 이 도구는 현재 Windows 계정에 남은 기록을 읽습니다. 과거 감염이나 정보 유출 여부는 이 결과만으로 알 수 없습니다. 로그를 공유할 때는 설치 경로에 이름 등 개인정보가 들어 있는지 확인하세요.
 
+## 니케 PC 런처 침해 흐름
+
+![변조된 CDN 스크립트가 런처 내장 브라우저에서 외부 코드를 불러온다. 일부 실행에서 원격제어 코드가 내려오고, 공격자 명령에 따라 Chrome에서 다시 실행될 파일과 설정도 남을 수 있다.](docs/attack-flow.svg)
+
+**변조된 곳.** 독립 분석에서 레벨 인피니트의 콘텐츠 배포 서버(CDN)에 있던 런처용 JavaScript 네 파일이 변조된 것으로 확인됐습니다. 대상은 `aegis-fix.min.js`, `vue-bucket.min.js`, `images.7fec4c32.js`, `FeedList.feb647c9.js`입니다. 변조본은 일부 CDN 서버와 이용자 PC의 런처 캐시에서도 발견됐습니다. 공격자가 배포 파일을 쓸 권한을 어떻게 얻었는지는 공개 자료로 확인되지 않았습니다. [변조 파일과 캐시 분석](https://gist.github.com/MotherSphere/d6c049a09ba8ac3085c51ee9df24a4e5#stage-1-modified-official-files)
+
+**원격 제어가 시작된 방식.** 런처를 열면 내장 브라우저가 변조된 파일을 읽고 외부 스크립트 `l.js`를 불러왔습니다. 일부 실행에서 `l.js`는 런처 기능을 호출해 원격제어 코드 `insight.bundle`을 내려받아 실행했습니다. 이후 공격자 서버의 명령과 실행 결과는 내장 브라우저(`tbs_browser.exe`)를 오갔습니다. 공격자가 할 수 있는 일의 범위는 런처가 실행된 권한에 따랐습니다. [로더와 원격제어 코드 분석](https://github.com/MotherSphere/NIKKE-Launcher-Check/blob/main/docs/incident.md#the-loader)
+
+**런처를 닫은 뒤에도 남는 경로.** 공격자가 별도 명령을 보내면 원격제어 코드가 Chrome 사용자 폴더에 `platform_experience_helper.dll`을 저장하고, 현재 Windows 사용자의 레지스트리(`HKCU`)에 이 파일을 등록할 수 있었습니다. 이후 Chrome이 DLL을 불러오면 니케 런처를 닫은 뒤에도 악성코드가 실행될 수 있었습니다. [Chrome 자동 실행 분석](https://github.com/MotherSphere/NIKKE-Launcher-Check/blob/main/docs/incident.md#persistence-on-windows)
+
+| 공개 자료에서 구분한 내용 | 근거와 범위 |
+| --- | --- |
+| 실제로 관측된 흔적 | 일부 PC에서 원격제어 코드의 다운로드·실행 로그와 Chrome DLL 설치 흔적이 보고됐습니다. 한 이용자는 실행 기록이 있는 시간대에 `tbs_browser.exe`가 약 4.85 MB를 보냈다고 보고했습니다. 이 기록은 전송량만 보여 줍니다. [이용자 로그와 전송량 기록](https://gist.github.com/MotherSphere/d6c049a09ba8ac3085c51ee9df24a4e5?permalink_comment_id=6456240) |
+| 분석된 코드로 할 수 있었던 일 | 공격자는 명령 실행, 파일 열람·복사, 화면 캡처를 요청할 수 있었습니다. 니케 로그인 정보, 브라우저에 저장한 비밀번호와 로그인 쿠키, API 토큰·SSH 키, Chrome 지갑 확장 프로그램의 데이터도 수집 대상이었습니다. [원격제어 코드의 기능](https://gist.github.com/MotherSphere/d6c049a09ba8ac3085c51ee9df24a4e5#what-the-attacker-can-do-on-an-infected-machine) |
+| 공개 기록으로 알 수 없는 것 | 각 PC에서 공격자가 실제로 보낸 명령과 외부로 넘어간 파일·계정 정보는 공개된 실행 로그와 전송량만으로 특정할 수 없습니다. [런처 로그의 한계](https://gist.github.com/MotherSphere/d6c049a09ba8ac3085c51ee9df24a4e5#what-the-attacker-can-do-on-an-infected-machine) |
+
 ## 참고 자료
 
 ### 점검 지표
