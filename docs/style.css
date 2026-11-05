@@ -36,3 +36,9 @@ footer p { margin: 0 0 .5rem; }
 [lang="ja"] body { word-break: normal; }
 nav a[aria-current="page"] { font-weight: 700; }
 pre { max-width: 100%; overflow-x: auto; padding: .65rem .85rem; background: #f0f2fa; border-radius: .4rem; }
+.file-check label { display: block; margin-bottom: .35rem; font-weight: 700; color: var(--ink); }
+.file-check input { max-width: 100%; font: inherit; }
+.file-check input:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.file-check [role="status"] { margin: .75rem 0; min-height: 1.7em; font-weight: 700; }
+.file-check [data-state="match"] { color: #18603b; }
+.file-check [data-state="mismatch"], .file-check [data-state="unavailable"] { color: #8c311e; }

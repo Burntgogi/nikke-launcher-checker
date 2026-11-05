@@ -10,6 +10,7 @@
   <link rel="alternate" hreflang="ja" href="https://burntgogi.github.io/nikke-launcher-checker/ja/">
   <link rel="alternate" hreflang="x-default" href="https://burntgogi.github.io/nikke-launcher-checker/">
   <link rel="stylesheet" href="../style.css">
+  <script defer src="../verify-release.js"></script>
 </head>
 <body>
   <header>
@@ -30,15 +31,30 @@
         <p class="author">作成者 Serio_ai</p>
         <p class="lead">Windows に残った記録から、不正なスクリプトに触れた痕跡と、ダウンロードや実行の痕跡を見分けます。</p>
         <div class="actions">
-          <a class="download" href="https://burntgogi.github.io/nikke-launcher-checker/Nikke-Launcher-Checker.zip" download>点検ツールをダウンロード（ZIP）</a>
+          <a class="download" href="https://github.com/Burntgogi/nikke-launcher-checker/releases/download/v1.0.0/Nikke-Launcher-Checker.zip">点検ツールをダウンロード（ZIP）</a>
+          <a href="#verify">ダウンロードしたファイルを確認</a>
           <a href="https://github.com/Burntgogi/nikke-launcher-checker#readme">GitHub README</a>
         </div>
       </div>
       <figure>
-        <img src="check-flow.svg" width="680" height="770" alt="読み取り専用で点検し、結果を保存します。対処できる項目があれば対象のパス、バックアップ先、復元コマンドを表示し、確認した項目だけを処理します。">
+        <img src="check-flow.svg" width="680" height="770" alt="ZIP を確認してから読み取り専用で点検します。対処できる項目があれば 1 で確認し、Y を入力した項目だけ処理します。バックアップの元のパスとハッシュを確認できます。">
         <figcaption><a href="check-flow.svg">図を拡大して見る</a></figcaption>
       </figure>
     </div>
+    <section id="verify" class="file-check" data-release-tag="v1.0.0"
+      data-idle="確認が済んだら、下の手順に進んでください。"
+      data-checking="GitHub の配布ファイルと照合しています。"
+      data-match="公式配布ファイルと一致しました。展開して下の手順に進んでください。"
+      data-mismatch="このバージョンの配布ファイルと一致しません。GitHub から ZIP を取り直してください。"
+      data-unavailable="ファイルを確認できませんでした。接続を確認してから再試行してください。">
+      <h2>ダウンロードしたファイルを確認</h2>
+      <p>展開する前に、ダウンロードした ZIP を選んでください。ブラウザーがこの PC 上でファイルのハッシュを計算し、GitHub のリリースと照合します。ファイルはアップロードされません。 <a href="https://github.com/Burntgogi/nikke-launcher-checker/releases/tag/v1.0.0">GitHub のリリースを見る v1.0.0</a></p>
+      <label for="downloaded-zip">ダウンロードした ZIP を選ぶ</label>
+      <input id="downloaded-zip" type="file" accept=".zip,application/zip" aria-describedby="verification-result">
+      <p id="verification-result" role="status" data-state="idle">確認が済んだら、下の手順に進んでください。</p>
+      <noscript><p>ブラウザーで JavaScript を有効にするか、README の GitHub CLI 手順を利用してください。</p></noscript>
+      <p><a href="https://github.com/Burntgogi/nikke-launcher-checker#cli">GitHub CLI で確認する方法</a></p>
+    </section>
     <section id="run">
       <h2>使い方</h2>
       <ol>
@@ -48,14 +64,16 @@
       </ol>
       <p>画面とログの言語は Windows の表示言語に合わせます。日本語、英語、韓国語に対応し、それ以外は英語で表示します。日本語を指定するには、エクスプローラーでツールのフォルダーを開き、アドレスバーに <code>powershell</code> と入力してから次のコマンドを実行してください。</p>
       <pre><code>.\Run-Nikke-Check.bat -Language ja</code></pre>
-      <p>最初の点検では記録を読み取り、ログを保存します。感染を裏付ける痕跡が見つかった場合は、ファイルの隔離や Chrome の自動起動設定の解除を選べます。画面に表示された対象のパス、バックアップ先、復元コマンドを確認してください。処理する項目だけ <code>Y</code> と入力し、スキップする場合は Enter キーを押してください。</p>
-      <p>誤検知だと確認できた場合は、同じ PC に同じ Windows アカウントでサインインしてください。ツールのフォルダーを開き、アドレスバーに <code>powershell</code> と入力します。先ほど表示された復元コマンドを貼り付け、パスが正しければ <code>RESTORE</code> と入力してください。元の場所にファイルやレジストリ値がある場合は復元を中止します。</p>
+      <p>点検スクリプトにはコード署名がありません。Windows にブロックされた場合は、バッチの画面に表示されたエラーと実行ポリシーの案内を確認してください。会社や学校の PC では担当者に問い合わせてください。 <a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies">Windows の実行ポリシー</a></p>
+      <p>読み取り専用の点検が終わり、対処できる項目がある場合は <code>1</code> を入力して、パス、判断の根拠、バックアップ先を確認します。処理する項目だけ <code>Y</code> と入力してください。Enter でスキップできます。</p>
+      <p>同じ PC と Windows アカウントでバックアップの確認コマンドを実行すると、元のパスとハッシュを確認できます。不審なファイルや自動起動設定は復元しません。誤検知が確認できた場合は、公式配布元の正常なファイルに置き換えてください。</p>
     </section>
     <section id="results">
       <h2>結果に応じた対処</h2>
       <dl class="results">
-        <div><dt>実行または Chrome での自動起動の痕跡</dt><dd>インターネットを切断し、ランチャーを閉じてください。安全な別の端末でパスワードを変更し、全端末からログアウトしてください。個人の PC では、ウイルス対策ソフトの検出履歴を保存してから隔離済みの脅威を削除し、Windows のクリーンインストールを検討してください。</dd></div>
-        <div><dt>ダウンロードの痕跡</dt><dd>インターネットを切断し、ランチャーを閉じてください。点検ログを保存し、ウイルス対策ソフトでスキャンしてください。ランチャーをアンインストールしてから再点検します。マルウェアが実行された可能性がある場合は、別の端末からアカウントを保護してください。</dd></div>
+        <div><dt>実行または悪意のある Chrome DLL の登録を確認</dt><dd>インターネットを切断し、ランチャーを閉じてください。安全な別の端末でパスワードを変更し、全端末からログアウトしてください。個人の PC ではログを保存し、Windows のクリーンインストールを優先してください。会社や学校の PC では担当者に連絡してください。</dd></div>
+        <div><dt>ダウンロードの痕跡または実行の疑い</dt><dd>インターネットを切断してログを保存し、ウイルス対策ソフトでスキャンしてください。実行前にブロックされたと確認できた場合は、隔離してから再点検します。実行を裏付ける痕跡があり、影響範囲を判断できない場合は、個人の PC では Windows のクリーンインストールを推奨します。</dd></div>
+        <div><dt>Chrome の不審なパスまたは登録値</dt><dd>ファイルと、レジストリ値が参照している先を確認してください。名前やパスだけでは悪意のあるファイルか判断できません。</dd></div>
         <div><dt>スクリプトに触れた痕跡またはダウンロード先のアドレス</dt><dd>ランチャーを閉じ、点検ログを保存してください。個人の PC では、Windows の設定から NIKKE をアンインストールしてください。結果に表示されたキャッシュフォルダーが残っていれば、そのフォルダーを削除します。修正版の告知を確認してから、公式配布元から再インストールしてください。</dd></div>
         <div><dt>判定保留</dt><dd>NIKKE を使っていた Windows アカウントでインストール先を指定し、もう一度点検してください。</dd></div>
         <div><dt>既知の痕跡なし</dt><dd>読み取れた記録からは既知の痕跡は見つかりませんでした。削除済みの記録や読み取れなかった記録は点検範囲外です。</dd></div>

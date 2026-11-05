@@ -10,6 +10,7 @@
   <link rel="alternate" hreflang="ja" href="https://burntgogi.github.io/nikke-launcher-checker/ja/">
   <link rel="alternate" hreflang="x-default" href="https://burntgogi.github.io/nikke-launcher-checker/">
   <link rel="stylesheet" href="./style.css">
+  <script defer src="./verify-release.js"></script>
 </head>
 <body>
   <header>
@@ -30,15 +31,30 @@
         <p class="author">제작자 Serio_ai</p>
         <p class="lead">Windows에 남은 기록을 확인해 노출, 다운로드, 실행 흔적을 구분합니다.</p>
         <div class="actions">
-          <a class="download" href="https://burntgogi.github.io/nikke-launcher-checker/Nikke-Launcher-Checker.zip" download>점검 도구 ZIP 받기</a>
+          <a class="download" href="https://github.com/Burntgogi/nikke-launcher-checker/releases/download/v1.0.0/Nikke-Launcher-Checker.zip">점검 도구 ZIP 받기</a>
+          <a href="#verify">다운로드 파일 확인</a>
           <a href="https://github.com/Burntgogi/nikke-launcher-checker#readme">GitHub README</a>
         </div>
       </div>
       <figure>
-        <img src="check-flow.svg" width="680" height="770" alt="읽기 전용 점검 후 결과를 저장합니다. 조치할 근거가 있으면 대상, 백업 위치, 복구 명령을 보여 주고 확인한 항목만 처리합니다.">
+        <img src="check-flow.svg" width="680" height="770" alt="ZIP을 확인한 뒤 읽기 전용으로 점검합니다. 조치 대상이 있으면 1로 검토하고 Y로 확인한 항목만 처리합니다. 백업에서 원래 경로와 지문을 볼 수 있습니다.">
         <figcaption><a href="check-flow.svg">작동도 크게 보기</a></figcaption>
       </figure>
     </div>
+    <section id="verify" class="file-check" data-release-tag="v1.0.0"
+      data-idle="검증에 성공하면 아래 실행 방법으로 진행하세요."
+      data-checking="GitHub 배포본과 비교하는 중입니다."
+      data-match="공식 배포본과 일치합니다. 압축을 풀고 아래 실행 방법을 따르세요."
+      data-mismatch="이 버전의 배포본과 일치하지 않습니다. 릴리스에서 ZIP을 다시 받으세요."
+      data-unavailable="파일을 확인할 수 없습니다. 인터넷 연결을 확인하고 다시 시도하세요.">
+      <h2>다운로드 파일 확인</h2>
+      <p>압축을 풀기 전에 방금 받은 ZIP을 선택하세요. 브라우저가 이 PC에서 파일 지문을 계산해 GitHub 릴리스와 비교합니다. 파일은 업로드하지 않습니다. <a href="https://github.com/Burntgogi/nikke-launcher-checker/releases/tag/v1.0.0">GitHub 릴리스 보기 v1.0.0</a></p>
+      <label for="downloaded-zip">받은 ZIP 선택</label>
+      <input id="downloaded-zip" type="file" accept=".zip,application/zip" aria-describedby="verification-result">
+      <p id="verification-result" role="status" data-state="idle">검증에 성공하면 아래 실행 방법으로 진행하세요.</p>
+      <noscript><p>브라우저에서 JavaScript를 사용하도록 설정하거나 README의 GitHub CLI 절차를 이용하세요.</p></noscript>
+      <p><a href="https://github.com/Burntgogi/nikke-launcher-checker#cli">GitHub CLI로 확인하는 방법</a></p>
+    </section>
     <section id="run">
       <h2>실행 방법</h2>
       <ol>
@@ -48,14 +64,16 @@
       </ol>
       <p>화면과 로그는 Windows 표시 언어를 따릅니다. 한국어·영어·일본어를 지원하며, 그 외에는 영어로 나옵니다. 한국어를 직접 고르려면 탐색기에서 도구 폴더를 열고 주소창에 <code>powershell</code>을 입력한 뒤 아래 명령을 실행하세요.</p>
       <pre><code>.\Run-Nikke-Check.bat -Language ko</code></pre>
-      <p>기본 점검에서는 기록을 읽고 로그를 저장합니다. 감염을 뒷받침할 근거가 있으면 파일 격리나 Chrome 자동 실행 해제를 선택할 수 있습니다. 화면에 표시된 대상 경로, 백업 위치와 복구 명령을 확인하세요. 처리할 항목에만 <code>Y</code>를 입력하고, 건너뛸 때는 Enter를 누르세요.</p>
-      <p>오탐으로 확인되면 같은 PC의 같은 Windows 계정에서 도구 폴더를 열고 주소창에 <code>powershell</code>을 입력하세요. 화면에 나온 복구 명령을 붙여 넣고, 경로가 맞으면 <code>RESTORE</code>를 입력하세요. 원래 위치에 파일이나 레지스트리 값이 있으면 복구가 중단됩니다.</p>
+      <p>점검 스크립트에는 코드 서명이 없습니다. Windows 정책이 실행을 막으면 배치 파일의 오류 메시지와 Windows 정책 안내를 확인하세요. 회사·학교 PC는 보안 담당자에게 문의하세요. <a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies">Windows 실행 정책 안내</a></p>
+      <p>읽기 전용 점검을 마치고 조치 대상이 있을 때만 조치 검토가 열립니다. <code>1</code>을 입력해 대상 경로, 근거, 백업 위치를 확인하세요. 처리할 항목에 <code>Y</code>를 입력합니다. Enter를 누르면 건너뜁니다.</p>
+      <p>백업 확인 명령은 같은 PC와 Windows 계정에서 원래 경로와 지문을 표시합니다. 의심 파일이나 자동 실행 값은 복원하지 않습니다. 오탐이 확인되면 공식 배포처의 정상 파일로 교체하세요.</p>
     </section>
     <section id="results">
       <h2>결과가 나오면</h2>
       <dl class="results">
-        <div><dt>실행 또는 Chrome 자동 실행 흔적</dt><dd>인터넷을 끊고 런처를 닫으세요. 다른 안전한 기기에서 비밀번호를 바꾸고 모든 기기에서 로그아웃하세요. 개인 PC라면 보호 기록을 보관한 뒤 백신이 격리한 위협을 제거하고 Windows 클린 설치를 검토하세요.</dd></div>
-        <div><dt>다운로드 흔적</dt><dd>인터넷을 끊고 런처를 닫으세요. 점검 로그를 보관한 뒤 백신으로 검사하고, 런처를 제거한 다음 다시 점검하세요. 실행을 배제하기 어렵다면 다른 기기에서 계정을 보호하세요.</dd></div>
+        <div><dt>실행 또는 악성 DLL 등록 확인</dt><dd>인터넷을 끊고 런처를 닫으세요. 안전한 다른 기기에서 비밀번호를 바꾸고 모든 기기에서 로그아웃하세요. 개인 PC는 점검 로그를 보관하고 Windows 클린 설치를 우선 검토하세요. 회사·학교 PC는 보안 담당자에게 연락하세요.</dd></div>
+        <div><dt>다운로드 흔적 또는 실행 의심</dt><dd>인터넷을 끊고 로그를 보관한 뒤 백신으로 검사하세요. 백신이 실행 전에 차단한 것이 확인되면 격리 후 다시 점검하세요. 실행 정황이 있고 영향 범위를 확인하기 어렵다면 개인 PC는 Windows 클린 설치를 권합니다.</dd></div>
+        <div><dt>Chrome 의심 경로 또는 등록값</dt><dd>파일과 레지스트리 값이 가리키는 대상을 확인하세요. 이름과 경로만으로는 악성 여부를 판단할 수 없습니다.</dd></div>
         <div><dt>노출 또는 다운로드 주소</dt><dd>런처를 닫고 점검 로그를 보관하세요. 개인 PC의 Windows 설정에서 니케를 제거하세요. 결과에 표시된 런처 캐시가 남아 있다면 그 폴더를 지우고, 수정판 안내를 확인한 뒤 공식 배포처에서 다시 설치하세요.</dd></div>
         <div><dt>판정 보류</dt><dd>니케를 사용한 Windows 계정에서 설치 폴더를 지정해 다시 확인하세요.</dd></div>
         <div><dt>흔적 미발견</dt><dd>읽은 자료에서 알려진 흔적을 찾지 못했습니다. 지워졌거나 읽지 못한 기록은 확인 범위에서 빠집니다.</dd></div>

@@ -10,6 +10,7 @@
   <link rel="alternate" hreflang="ja" href="https://burntgogi.github.io/nikke-launcher-checker/ja/">
   <link rel="alternate" hreflang="x-default" href="https://burntgogi.github.io/nikke-launcher-checker/">
   <link rel="stylesheet" href="../style.css">
+  <script defer src="../verify-release.js"></script>
 </head>
 <body>
   <header>
@@ -30,15 +31,30 @@
         <p class="author">By Serio_ai</p>
         <p class="lead">Check Windows records for signs of exposure, downloads, and malware execution.</p>
         <div class="actions">
-          <a class="download" href="https://burntgogi.github.io/nikke-launcher-checker/Nikke-Launcher-Checker.zip" download>Download the ZIP</a>
+          <a class="download" href="https://github.com/Burntgogi/nikke-launcher-checker/releases/download/v1.0.0/Nikke-Launcher-Checker.zip">Download the ZIP</a>
+          <a href="#verify">Check your download</a>
           <a href="https://github.com/Burntgogi/nikke-launcher-checker#readme">GitHub README</a>
         </div>
       </div>
       <figure>
-        <img src="check-flow.svg" width="680" height="770" alt="A read-only scan saves the results. If an item qualifies for action, the tool shows its path, the backup location and the restore command, and acts only on confirmation.">
+        <img src="check-flow.svg" width="680" height="770" alt="Verify the ZIP, then run a read-only scan. If items qualify, type 1 to review and Y for each action. Backup inspection shows the original path and hash.">
         <figcaption><a href="check-flow.svg">Open the full-size diagram</a></figcaption>
       </figure>
     </div>
+    <section id="verify" class="file-check" data-release-tag="v1.0.0"
+      data-idle="After the check passes, follow the steps below."
+      data-checking="Checking the file against the GitHub release."
+      data-match="The file matches the release. Extract it and follow the steps below."
+      data-mismatch="The file does not match this release. Download the ZIP again from GitHub."
+      data-unavailable="Could not verify the file. Check your connection and try again.">
+      <h2>Check your download</h2>
+      <p>Select the ZIP you just downloaded before extracting it. Your browser checks the file on this PC against the GitHub release. It does not upload the file. <a href="https://github.com/Burntgogi/nikke-launcher-checker/releases/tag/v1.0.0">View the GitHub release v1.0.0</a></p>
+      <label for="downloaded-zip">Select the downloaded ZIP</label>
+      <input id="downloaded-zip" type="file" accept=".zip,application/zip" aria-describedby="verification-result">
+      <p id="verification-result" role="status" data-state="idle">After the check passes, follow the steps below.</p>
+      <noscript><p>Enable JavaScript in your browser or use the GitHub CLI steps in the README.</p></noscript>
+      <p><a href="https://github.com/Burntgogi/nikke-launcher-checker#cli">Verify with GitHub CLI</a></p>
+    </section>
     <section id="run">
       <h2>How to run</h2>
       <ol>
@@ -48,14 +64,16 @@
       </ol>
       <p>The screen and log follow your Windows display language. The tool supports Korean, English, and Japanese and falls back to English. To pick English, open the tool folder in File Explorer, type <code>powershell</code> in the address bar, then run the command below.</p>
       <pre><code>.\Run-Nikke-Check.bat -Language en</code></pre>
-      <p>The scan reads existing records and saves a log. If there is enough evidence, you can quarantine a file or stop Chrome from loading a suspicious DLL. Check the exact path, backup location, and restore command on screen. Type <code>Y</code> to act on that item or press Enter to skip it.</p>
-      <p>If you confirm a false positive, sign in to the same Windows account on the same PC. Open the tool folder in File Explorer and type <code>powershell</code> in the address bar. Paste the restore command shown earlier. If the path is correct, type <code>RESTORE</code>. Restore stops if a file or registry value already exists at the original location.</p>
+      <p>The checker script is unsigned. If Windows blocks it, read the message in the batch window and check the Windows policy guide. On a work or school PC, ask your security team. <a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies">Windows execution policy guide</a></p>
+      <p>The scan reads existing records and saves a log. If any items qualify for action, type <code>1</code> to review their paths, the evidence and the backup locations. Type <code>Y</code> for each item you want to process, or press Enter to skip it.</p>
+      <p>Use the backup inspection command on the same PC and account to see the original path and hash. The tool does not restore suspect files or startup settings. If you confirm a false positive, use a clean replacement from the official publisher.</p>
     </section>
     <section id="results">
       <h2>What to do after the scan</h2>
       <dl class="results">
-        <div><dt>Execution or automatic startup in Chrome</dt><dd>Disconnect from the internet and close the launcher. On another trusted device, change your passwords and sign out all devices. On a personal PC, save the antivirus detection record before removing quarantined threats, and consider a clean Windows install.</dd></div>
-        <div><dt>Download traces</dt><dd>Disconnect from the internet and close the launcher. Save the scan log, run your antivirus, uninstall the launcher, then check again. If the malware may have run, secure your accounts from another device.</dd></div>
+        <div><dt>Execution or malicious Chrome registration confirmed</dt><dd>Disconnect from the network and close the launcher. From another trusted device, change passwords and sign out all devices. On a personal PC, save the scan log and prioritize a clean Windows install. On a work or school PC, contact your security team.</dd></div>
+        <div><dt>Download traces or possible execution</dt><dd>Disconnect from the network, save the scan log and run your antivirus. If it blocked the threat before execution, quarantine it and scan again. If there is evidence of execution and you cannot establish the scope, a clean Windows install is recommended for personal PCs.</dd></div>
+        <div><dt>Suspicious Chrome path or registry value</dt><dd>Check the file and the target of the registry value. A name or path alone cannot identify a malicious file.</dd></div>
         <div><dt>Exposure or download address</dt><dd>Close the launcher and save the scan log. On a personal PC, uninstall NIKKE in Windows Settings. If a launcher cache folder listed in the results remains, delete that folder. Check the official notice for the fixed launcher, then reinstall from the official source.</dd></div>
         <div><dt>Inconclusive</dt><dd>Run the scan again from the Windows account you used for NIKKE and specify the installation folder.</dd></div>
         <div><dt>No known traces found</dt><dd>The scan found no known traces in the records it could read. Deleted or unreadable records are outside its coverage.</dd></div>

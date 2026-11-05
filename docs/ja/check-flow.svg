@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="680" height="770" viewBox="0 0 680 770" role="img" aria-labelledby="flow-title flow-desc" xml:lang="ja">
   <title id="flow-title">ランチャーの点検と任意の対処</title>
-  <desc id="flow-desc">バッチファイルで読み取り専用の点検を実行し、結果を保存します。対処できる項目がある場合は、対象のパス、バックアップ先、復元コマンドを表示します。Enter でスキップします。Y を入力した項目だけを再確認して暗号化バックアップを保存し、ファイルを隔離するか、Chrome に DLL を読み込ませる現在のユーザーのレジストリ既定値を削除します。誤検知の場合は同じ PC の同じ Windows アカウントで復元してください。</desc>
+  <desc id="flow-desc">配布 ZIP を確認し、読み取り専用で点検します。結果を保存し、対処できる項目があれば 1 で確認します。Y を入力した項目だけを再確認し、暗号化バックアップを保存してからファイルを隔離するかレジストリの既定値を削除します。バックアップでは元のパスとハッシュを確認できます。</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
       <path d="M0 0L10 5L0 10z" fill="#5369a8"/>
@@ -26,29 +26,29 @@
   </g>
   <g font-family="'Yu Gothic', 'Meiryo', 'Noto Sans CJK JP', sans-serif">
     <g fill="#172752" font-size="22" font-weight="700">
-      <text x="48" y="49">1. バッチファイルを実行</text>
+      <text x="48" y="49">1. ZIP を確認してバッチを実行</text>
       <text x="48" y="131">2. 読み取り専用で点検</text>
       <text x="48" y="214">3. 結果を表示し、点検ログを保存</text>
-      <text x="48" y="297">4. 対処に必要な根拠と対象はあるか</text>
+      <text x="48" y="297">4. 対処の根拠を確認できたか</text>
       <text x="46" y="393">対象なし</text>
-      <text x="318" y="393">対象あり · 1 件ずつ確認</text>
+      <text x="318" y="393">対象あり · 1 で確認</text>
       <text x="46" y="498">Enter · スキップ</text>
       <text x="318" y="498">Y · この項目だけ処理</text>
-      <text x="48" y="692">誤検知と確認できた場合は復元</text>
+      <text x="48" y="692">バックアップの確認</text>
     </g>
     <g fill="#405178" font-size="17">
-      <text x="48" y="71">Run-Nikke-Check.bat → Check-Nikke.ps1</text>
+      <text x="48" y="71">配布 ZIP を確認 → Run-Nikke-Check.bat</text>
       <text x="48" y="154">ランチャーのログとキャッシュ、Chrome のファイルとレジストリを確認</text>
       <text x="48" y="237">見つかった痕跡と次の手順を表示</text>
-      <text x="48" y="320">実行記録と既知のハッシュ、または Chrome の登録先と DLL のハッシュ</text>
+      <text x="48" y="320">既知のマルウェアのハッシュ、または登録 DLL 内の通信指標</text>
       <text x="46" y="418">点検結果を保存して終了</text>
-      <text x="318" y="418">パス・保存先・復元コマンドを表示</text>
+      <text x="318" y="418">パス・根拠・保存先を表示</text>
       <text x="46" y="522">次の項目を確認</text>
       <text x="318" y="523">対象を再確認し、暗号化バックアップ</text>
       <text x="318" y="608">対象が変わったりファイルがロック</text>
       <text x="318" y="628">されていたりする場合は処理未完了</text>
-      <text x="48" y="715">同じ PC と Windows アカウントで復元コマンドを実行 → RESTORE を入力</text>
-      <text x="48" y="736">元の場所にファイルや値があれば復元中止</text>
+      <text x="48" y="715">同じ PC と Windows アカウントで確認コマンドを実行</text>
+      <text x="48" y="736">元のパスとハッシュを表示。不審な項目は復元しない</text>
     </g>
     <g fill="#713d17" font-size="17" font-weight="700">
       <text x="318" y="553">隔離 · 元の場所からファイルを除去</text>

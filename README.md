@@ -2,9 +2,23 @@
 
 니케 PC 런처 침해 사건의 알려진 흔적을 Windows에서 확인하는 도구입니다. 제작자는 **Serio_ai**입니다.
 
-[한국어](https://burntgogi.github.io/nikke-launcher-checker/) · [English](https://burntgogi.github.io/nikke-launcher-checker/en/) · [日本語](https://burntgogi.github.io/nikke-launcher-checker/ja/) · [점검 도구 ZIP 받기](https://burntgogi.github.io/nikke-launcher-checker/Nikke-Launcher-Checker.zip)
+[한국어](https://burntgogi.github.io/nikke-launcher-checker/) · [English](https://burntgogi.github.io/nikke-launcher-checker/en/) · [日本語](https://burntgogi.github.io/nikke-launcher-checker/ja/) · [점검 도구 ZIP 받기](https://github.com/Burntgogi/nikke-launcher-checker/releases/download/v1.0.0/Nikke-Launcher-Checker.zip)
 
-![읽기 전용 점검 후 결과를 저장합니다. 감염 근거와 조치 대상이 있으면 정확한 경로, 백업 위치, 복구 명령을 보여 줍니다. Y를 입력한 항목만 백업한 뒤 파일을 격리하거나 Chrome 자동 실행 기본값을 제거합니다.](docs/check-flow.svg)
+![ZIP을 확인한 뒤 읽기 전용으로 점검합니다. 조치 대상이 있으면 1로 검토하고 Y로 확인한 항목만 처리합니다. 백업에서 원래 경로와 지문을 볼 수 있습니다.](docs/check-flow.svg)
+
+## 다운로드 확인
+
+1. [GitHub 불변 릴리스 v1.0.0](https://github.com/Burntgogi/nikke-launcher-checker/releases/tag/v1.0.0)에서 `Nikke-Launcher-Checker.zip`을 받으세요.
+2. [다운로드 파일 확인](https://burntgogi.github.io/nikke-launcher-checker/#verify)에서 받은 ZIP을 고르세요. 브라우저가 이 PC에서 파일 지문을 계산해 GitHub 배포본과 비교합니다.
+3. **공식 배포본과 일치합니다**가 나오면 압축을 풀고 실행하세요. 일치하지 않으면 릴리스에서 다시 받으세요.
+
+<a id="cli"></a>
+
+GitHub CLI가 있다면 다운로드 폴더에서 아래 명령으로 릴리스 증명까지 확인할 수 있습니다.
+
+~~~powershell
+gh release verify-asset v1.0.0 .\Nikke-Launcher-Checker.zip --repo Burntgogi/nikke-launcher-checker
+~~~
 
 ## 실행
 
@@ -12,7 +26,7 @@
 2. 니케를 사용한 Windows 계정에서 배치 파일을 두 번 클릭합니다. 설치 폴더가 따로 있으면 그 폴더를 배치 파일 위로 끌어 놓습니다.
 3. 화면의 **지금 할 일**을 확인합니다. 상세 결과는 `logs` 폴더에 저장됩니다.
 
-Windows PowerShell 5.1 이상에서 실행합니다. 기본 점검에서는 현재 계정의 기록을 읽고 점검 로그를 저장합니다. 배치 파일의 실행 정책 옵션은 그 배치가 시작한 PowerShell에만 적용됩니다.
+배치 파일은 Windows PowerShell 5.1에서 실행합니다. 스크립트에는 코드 서명이 없어 Windows 정책에 따라 실행이 차단될 수 있습니다. 이 경우 배치 화면의 오류 메시지를 확인하세요. 회사·학교 PC는 보안 담당자에게 문의하세요. [PowerShell 실행 정책](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies)
 
 화면과 점검 로그는 Windows 표시 언어에 맞춰 한국어, 영어, 일본어로 나옵니다. 그 밖의 표시 언어에서는 영어를 씁니다. 직접 고르려면 탐색기에서 점검 도구 폴더를 열고 주소창에 `powershell`을 입력한 뒤 아래 명령 중 하나를 실행하세요.
 
@@ -22,22 +36,23 @@ Windows PowerShell 5.1 이상에서 실행합니다. 기본 점검에서는 현�
 .\Run-Nikke-Check.bat -Language ja
 ```
 
-PowerShell 스크립트에도 같은 옵션을 쓸 수 있습니다. 예를 들어 `.\Check-Nikke.ps1 -Language ja`로 실행하면 일본어로 점검합니다. 배치 파일과 PowerShell 스크립트 모두 `-Language Auto`가 기본값입니다. 판정과 조치 기준, 확인에 쓰는 `Y`와 `RESTORE`는 세 언어에서 같습니다.
+PowerShell 스크립트에도 같은 옵션을 쓸 수 있습니다. 예를 들어 `.\Check-Nikke.ps1 -Language ja`로 실행하면 일본어로 점검합니다. 배치 파일과 PowerShell 스크립트 모두 `-Language Auto`가 기본값입니다. 판정과 조치 기준, 확인에 쓰는 `1`과 `Y`는 세 언어에서 같습니다.
 
 ## 파일 격리와 자동 실행 해제
 
-배치 파일은 먼저 읽기 전용으로 점검합니다. 런처에 실행 기록이 있고 파일 지문이 알려진 악성 파일과 일치하거나, Chrome에 등록된 의심 DLL의 경로와 지문이 확인되면, 점검이 끝난 뒤 조치할 항목을 보여 줍니다. 항목마다 경로와 백업 위치를 확인하고 `Y`를 입력하세요. Enter를 누르면 그 항목을 건너뜁니다. PowerShell에서 `Check-Nikke.ps1`을 직접 실행할 때는 `-OfferRemediation`을 붙여 선택 조치를 열 수 있습니다.
+읽기 전용 점검이 끝나고 조치할 항목이 있으면 **조치 검토**가 나옵니다. Enter를 누르면 점검을 마칩니다. `1`을 입력하면 대상 경로와 판단 근거, 백업 위치가 나옵니다. 처리할 항목에만 `Y`를 입력하세요. PowerShell 스크립트를 직접 실행할 때는 `-OfferRemediation`으로 조치 검토를 표시할 수 있습니다.
 
-파일 격리는 암호화 백업을 저장하고 확인한 뒤 원래 경로에서 해당 파일을 제거합니다. 자동 실행 해제는 현재 Windows 계정에서 의심 DLL을 가리키는 레지스트리의 `(기본값)` 하나만 제거합니다. 점검 후 대상이 바뀌거나 다른 프로그램이 파일을 잡고 있으면 미완료로 표시합니다.
+공개된 악성 파일 지문과 일치하거나 등록된 DLL 안에서 사건의 통신 지표를 확인한 파일만 격리 대상으로 삼습니다. Chrome 자동 실행 해제는 해당 DLL을 가리키는 현재 사용자의 레지스트리 기본값 하나만 처리합니다. 조치 직전에 대상을 다시 확인하고, 접근할 수 없거나 대상이 바뀌면 건너뜁니다.
 
-오탐으로 확인되면 이 PC의 같은 Windows 계정으로 로그인하세요. 탐색기에서 점검 도구 폴더를 연 다음 주소창에 `powershell`을 입력하고 Enter를 누르세요. 화면에 나왔던 복구 명령을 붙여 넣고, 경로가 맞으면 `RESTORE`를 입력하세요. 이미 같은 위치에 파일이나 값이 있으면 복구를 멈춥니다. 암호화 백업은 `%LOCALAPPDATA%\NikkeLauncherChecker\Backups`에 남습니다.
+암호화 백업은 `%LOCALAPPDATA%\NikkeLauncherChecker\Backups`에 저장됩니다. 같은 PC와 같은 Windows 계정에서 화면에 나온 `-InspectBackup` 명령으로 원래 경로와 확인 가능한 지문을 볼 수 있습니다. 이전 버전의 `-Restore` 명령도 이 버전에서는 백업 내용 확인으로 연결됩니다. 오탐이 확인되면 공식 배포처의 정상 파일로 교체하세요.
 
 ## 결과별 첫 조치
 
 | 결과 | 할 일 |
 | --- | --- |
-| 실행 또는 Chrome 자동 실행 흔적 | 인터넷을 끊고 런처를 닫으세요. 다른 안전한 기기에서 비밀번호를 바꾸고 모든 기기에서 로그아웃하세요. 개인 PC라면 백신의 보호 기록을 확인하고, 기록을 보관한 뒤 격리된 위협을 제거하세요. Windows 클린 설치를 검토하세요. |
-| 다운로드 흔적 | 인터넷을 끊고 런처를 닫으세요. 점검 로그를 보관한 뒤 백신 검사, 런처 제거, 재점검 순으로 진행하세요. 실행을 배제하기 어려우면 다른 기기에서 계정을 보호하세요. |
+| 실행 또는 악성 DLL 등록 확인 | 인터넷을 끊고 런처를 닫으세요. 안전한 다른 기기에서 비밀번호를 바꾸고 모든 기기에서 로그아웃하세요. 개인 PC는 점검 로그를 보관하고 Windows 클린 설치를 우선 검토하세요. 회사·학교 PC는 보안 담당자에게 연락하세요. |
+| 다운로드 흔적 또는 실행 의심 | 인터넷을 끊고 로그를 보관한 뒤 백신으로 검사하세요. 백신이 실행 전에 차단한 것이 확인되면 격리 후 다시 점검하세요. 실행 정황이 있고 영향 범위를 확인하기 어렵다면 개인 PC는 Windows 클린 설치를 권합니다. |
+| Chrome 의심 경로 또는 등록값 | 파일과 레지스트리 값이 가리키는 대상을 확인하세요. 이름과 경로만으로는 악성 여부를 판단할 수 없습니다. |
 | 노출 또는 다운로드 주소 | 런처를 닫고 점검 로그를 보관하세요. 개인 PC의 Windows 설정에서 니케를 제거하고, 결과에 표시된 `tbs_cache`가 남아 있다면 그 폴더를 지우세요. 수정판 안내를 확인한 뒤 공식 배포처에서 다시 설치하세요. |
 | 판정 보류 | 니케를 사용한 Windows 계정과 실제 설치 폴더에서 다시 확인하세요. |
 | 흔적 미발견 | 읽은 자료에서 알려진 흔적을 찾지 못했습니다. 지워졌거나 읽지 못한 기록은 확인 범위에서 빠집니다. |

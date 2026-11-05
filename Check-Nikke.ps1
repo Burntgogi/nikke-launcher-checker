@@ -5,7 +5,8 @@ param(
     [string]$InstallPath,
     [string]$LogDirectory,
     [switch]$OfferRemediation,
-    [string]$RestoreBackup,
+    [Alias('RestoreBackup')]
+    [string]$InspectBackup,
     [ValidateSet('Auto','ko','en','ja')]
     [string]$Language = 'Auto'
 )
@@ -52,17 +53,13 @@ $messages = switch ($Language) {
             OpenedPathMismatch = '열린 파일의 경로가 확인한 경로와 일치하지 않습니다.'
             ReparsePath = '경로에 링크 또는 접합점이 있습니다.'
             BackupVerificationFailed = '암호화 백업을 확인할 수 없습니다.'
-            ChromeActionEvidence = 'Chrome에 등록된 DLL입니다. 파일 지문이 상위 폴더 이름과 일치합니다.'
+            ChromeActionEvidence = '등록된 DLL 안에서 이 사건의 서버 주소와 통신 경로를 확인했습니다.'
             PayloadActionEvidence = '공개된 악성코드와 파일 지문이 일치합니다.'
             RegistryTargetMismatch = '확인된 레지스트리 대상과 일치하지 않습니다.'
             RegistryKeyUnreadable = '레지스트리 키가 없거나 열 수 없습니다.'
-            RegistryValueExists = '기본값이 이미 있어 복구를 건너뜁니다.'
-            RegistryRestoreUnverified = '기본값이 복구됐는지 확인할 수 없습니다.'
             RegistryValueChanged = '점검한 뒤 레지스트리 값이 바뀌었습니다.'
             RegistryValueChangedDuringBackup = '백업하는 동안 레지스트리 값이 바뀌었습니다.'
             RegistryRemovalUnverified = '기본값이 제거됐는지 확인할 수 없습니다.'
-            RecoveryInstructions = '오탐으로 확인되면 이 PC의 같은 Windows 계정에서 점검 도구 폴더를 열고 아래 명령을 실행하세요.'
-            NoActionTargets = '격리하거나 제거할 수 있을 만큼 근거가 확인된 항목이 없습니다.'
             OptionalActions = '선택 조치. 각 항목에서 Enter를 누르면 건너뜁니다.'
             BeforeActions = '인터넷 연결을 끊고 니케 런처와 Chrome을 닫은 뒤 진행하세요. 회사 PC라면 보안 담당자에게 먼저 연락하세요.'
             FileQuarantine = '파일 격리  {0}'
@@ -84,14 +81,7 @@ $messages = switch ($Language) {
             BackupUnreadable = '읽을 수 있는 점검 도구 백업이 아닙니다.'
             BackupFormatUnknown = '백업 형식을 확인할 수 없습니다.'
             BackupMismatch = '백업의 파일 지문이나 원래 경로가 일치하지 않습니다.'
-            FileRestore = '파일 복구  {0}'
-            RegistryRestore = '기본값 복구  {0} [{1}]'
-            BeforeRestore = '오탐으로 확인된 경우에만 복구하세요. 원래 위치에 파일이나 값이 있으면 덮어쓰지 않습니다.'
-            ConfirmRestore = '이 항목을 복구하려면 RESTORE를 입력하세요'
-            RestoreCancelled = '복구를 취소했습니다.'
-            RestoreDone = '복구했습니다.'
             WindowsOnly = 'Windows에서 실행하세요.'
-            RestoreFailed = '복구 미완료  {0}'
             Title = '니케 PC 런처 감염 점검'
             Author = '제작자 Serio_ai'
             ScanTime = '점검 시각 {0:yyyy-MM-dd HH:mm:ss zzz}'
@@ -115,16 +105,16 @@ $messages = switch ($Language) {
             RotateKeys = 'API 키나 SSH 키가 노출됐다면 폐기하고 다시 발급하세요. 가상자산 지갑의 복구 문구가 노출됐을 수 있다면 안전한 기기에서 새 지갑을 만드세요.'
             RunAntivirus = '개인 PC는 Windows 보안 → 바이러스 및 위협 방지 → 검사 옵션에서 전체 검사를 실행하세요. 다른 백신을 사용한다면 해당 백신으로 검사하세요.'
             ReviewQuarantine = '개인 PC는 Windows 보안의 보호 기록에서 점검 로그에 나온 경로와 일치하는 항목을 확인하세요. 조치가 필요하면 격리를 선택하세요. 같은 위협이 이미 격리돼 있고 기록을 보관했다면 해당 항목의 제거를 선택하세요.'
-            CleanInstallPrepare = '실행이나 자동 실행 흔적이 확인됐다면 Windows 클린 설치를 권장합니다. 필요한 문서와 사진, 점검 자료를 다른 저장장치에 보관하세요. BitLocker를 켰다면 복구 키도 확보하세요.'
-            CleanInstallUsb = '안전한 PC에서 Microsoft 공식 Windows 설치 USB를 만드세요. USB를 꽂고 USB로 PC를 시작하세요. 설치 화면에서 Windows가 있던 디스크를 확인한 뒤 새로 설치하세요. 선택한 디스크의 데이터가 지워집니다.'
-            CleanInstallRestore = '설치가 끝나면 보관한 문서와 사진을 옮기세요. 이전 실행 파일, 브라우저 프로필, Windows 전체 백업은 그대로 복원하지 마세요.'
+            CleanInstallPrepare = '개인 PC를 새로 설치하기 전에 필요한 문서와 사진, 점검 로그를 다른 저장장치에 보관하세요. BitLocker를 사용한다면 복구 키도 확보하세요.'
+            CleanInstallUsb = '개인 PC는 안전한 다른 PC에서 Microsoft 공식 설치 USB를 만드세요. USB로 부팅해 Windows를 새로 설치하세요. 선택한 드라이브의 데이터가 지워집니다.'
+            CleanInstallRestore = '개인 PC는 설치 후 Windows와 백신을 업데이트하고, 백업을 검사한 뒤 필요한 문서와 사진만 복원하세요.'
             Results = '점검 결과'
             ResultExecution = '악성코드가 실행된 흔적을 찾았습니다.'
-            ResultPersistence = 'Chrome에서 악성코드가 다시 실행될 수 있는 파일이나 설정을 찾았습니다.'
+            ResultPersistence = 'Chrome에서 DLL이 의심되는 경로나 등록값을 찾았습니다. 파일이 악성인지는 확인되지 않았습니다.'
+            CheckChromeTarget = '백신 보호 기록과 점검 로그에서 DLL 경로를 대조하세요. 파일이 악성으로 확인되면 네트워크를 끊고 추가 점검을 하세요.'
             UnknownDisclosure = '정보가 유출됐는지는 이 점검으로 알 수 없습니다.'
             ResultDownload = '악성코드로 의심되는 파일이나 다운로드 기록을 찾았습니다. 실행 여부는 확인되지 않았습니다.'
-            ProtectIfExecutionPossible = '실행을 배제하기 어렵다면 계정부터 보호하세요.'
-            CheckAgain = '정리 후 다시 점검하세요. 악성 파일이 남거나 실행·Chrome 자동 실행 흔적이 나오면 PC를 분리한 상태에서 Windows 클린 설치를 검토하세요. 설치 방법은 점검 로그에 있습니다.'
+            CheckAgain = '백신 보호 기록에서 실행 전에 차단됐는지 확인하세요. 차단이 확인되면 격리 후 다시 점검하세요. 실행이나 자동 실행을 뒷받침하는 기록이 나오고 영향 범위를 확인하기 어렵다면 개인 PC는 Windows 클린 설치를 권합니다.'
             ResultRequest = '악성코드의 다운로드 주소가 남아 있습니다. 파일을 받았거나 실행했는지는 확인되지 않았습니다.'
             ResultExposure = '악성 스크립트에 노출된 흔적을 찾았습니다. 악성코드 실행 여부는 확인되지 않았습니다.'
             ResultInconclusive = '판정 보류. 읽을 수 있는 자료가 부족하거나 추가로 확인할 항목이 있습니다.'
@@ -149,6 +139,17 @@ $messages = switch ($Language) {
             LogSaveFailed = '점검 로그를 저장하지 못했습니다. 두 파일을 바탕 화면처럼 파일을 저장할 수 있는 폴더에 두고 다시 실행하세요.'
             ActionsStopped = '선택 조치 중단  {0}'
             ActionLogFailed = '조치 결과를 점검 로그에 덧붙이지 못했습니다. 화면의 백업 경로를 보관하세요.'
+            ReviewActions = '조치 검토'
+            ConfirmReview = '조치할 항목을 보려면 1을 입력하세요. Enter는 종료'
+            ReviewSkipped = '점검만 마쳤습니다.'
+            BackupInspectionOnly = '백업은 확인용입니다. 의심 파일이나 자동 실행 설정은 복원하지 않습니다. 오탐이 확인되면 공식 배포처의 정상 파일로 교체하세요.'
+            BackupOriginalFile = '원래 파일 경로  {0}'
+            BackupOriginalValue = '원래 레지스트리 경로  {0} [{1}]'
+            BackupInspectionFailed = '백업 확인 실패  {0}'
+            ResultVerifiedDownload = '알려진 악성 파일과 일치하는 파일을 찾았습니다. 실행은 확인되지 않았습니다.'
+            ResultSuspectedExecution = '실행이 의심되는 기록이 있습니다. 다른 로그와 백신 기록을 확인하세요.'
+            ResultConfirmedPersistence = '이 사건의 통신 지표가 들어 있는 DLL이 Chrome에 등록돼 있습니다.'
+            RecommendCleanInstall = '개인 PC는 Windows 클린 설치를 우선 권합니다. 회사·학교 PC는 로그를 보관하고 보안 담당자에게 연락하세요.'
         }
     }
     'ja' {
@@ -183,17 +184,13 @@ $messages = switch ($Language) {
             OpenedPathMismatch = '開いたファイルのパスが確認済みのパスと一致しません。'
             ReparsePath = 'パスにリンクまたはジャンクションがあります。'
             BackupVerificationFailed = '暗号化バックアップを確認できませんでした。'
-            ChromeActionEvidence = 'Chrome に登録された DLL です。SHA-256 ハッシュが親フォルダー名と一致します。'
+            ChromeActionEvidence = '登録された DLL の中に、この事件で使われたサーバーのアドレスと通信パスが見つかりました。'
             PayloadActionEvidence = 'ファイルの SHA-256 ハッシュが公開済みのマルウェアのハッシュと一致します。'
             RegistryTargetMismatch = '確認済みのレジストリ項目と一致しません。'
             RegistryKeyUnreadable = 'レジストリキーが存在しないか、開けません。'
-            RegistryValueExists = '既定値がすでにあるため、復元をスキップします。'
-            RegistryRestoreUnverified = '既定値が復元されたことを確認できませんでした。'
             RegistryValueChanged = '点検後にレジストリ値が変わりました。'
             RegistryValueChangedDuringBackup = 'バックアップ中にレジストリ値が変わりました。'
             RegistryRemovalUnverified = '既定値が削除されたことを確認できませんでした。'
-            RecoveryInstructions = '誤検知だと確認できた場合は、この PC に同じ Windows アカウントでサインインし、点検ツールのフォルダーで下のコマンドを実行してください。'
-            NoActionTargets = '隔離や削除の条件を満たす項目はありません。'
             OptionalActions = '対処は任意です。Enter キーで項目をスキップできます。'
             BeforeActions = 'インターネットを切断し、NIKKE ランチャーと Chrome を閉じてください。会社の PC では先にセキュリティ担当者へ連絡してください。'
             FileQuarantine = 'ファイルを隔離  {0}'
@@ -215,14 +212,7 @@ $messages = switch ($Language) {
             BackupUnreadable = 'このファイルは点検ツールのバックアップとして読み取れません。'
             BackupFormatUnknown = 'バックアップの形式を確認できませんでした。'
             BackupMismatch = 'ファイルのハッシュまたは元のパスがバックアップと一致しません。'
-            FileRestore = 'ファイルを復元  {0}'
-            RegistryRestore = '既定値を復元  {0} [{1}]'
-            BeforeRestore = '誤検知だと確認できた場合にだけ復元してください。元の場所にファイルや値がある場合は上書きしません。'
-            ConfirmRestore = 'この項目を復元するには RESTORE と入力してください'
-            RestoreCancelled = '復元をキャンセルしました。'
-            RestoreDone = '復元しました。'
             WindowsOnly = 'Windows で実行してください。'
-            RestoreFailed = '復元未完了  {0}'
             Title = 'NIKKE PC ランチャー感染チェック'
             Author = '作成者 Serio_ai'
             ScanTime = '点検日時 {0:yyyy-MM-dd HH:mm:ss zzz}'
@@ -246,16 +236,16 @@ $messages = switch ($Language) {
             RotateKeys = 'API キーや SSH キーが漏えいした場合は、無効化して再発行してください。暗号資産ウォレットの復元フレーズが漏えいした可能性がある場合は、安全な端末で新しいウォレットを作成してください。'
             RunAntivirus = '個人の PC では「Windows セキュリティ」→「ウイルスと脅威の防止」→「スキャンのオプション」でフルスキャンを実行してください。別のウイルス対策ソフトを使っている場合は、そのソフトでスキャンしてください。'
             ReviewQuarantine = '個人の PC では、「Windows セキュリティ」の「保護の履歴」と点検ログのパスを照合してください。対処が必要なら「隔離」を選びます。同じ脅威がすでに隔離され、履歴を保存済みなら「削除」を選んでください。'
-            CleanInstallPrepare = '実行や自動起動の痕跡が確認できた場合は、Windows のクリーンインストールを推奨します。必要な文書、写真、点検資料を別のストレージに保存してください。BitLocker が有効なら回復キーも確保してください。'
-            CleanInstallUsb = '安全な PC で、Microsoft 公式の Windows インストール USB を作成してください。対象の PC に挿し、USB から起動します。インストール画面で Windows が入っていたドライブを確認してから、新規インストールしてください。選択したドライブのデータは消去されます。'
-            CleanInstallRestore = 'インストール後は、保存した文書と写真を戻してください。以前の実行ファイル、ブラウザープロファイル、Windows 全体のバックアップをそのまま戻すのは避けてください。'
+            CleanInstallPrepare = '個人の PC を再インストールする前に、必要な文書、写真、点検ログを別のストレージに保存してください。BitLocker が有効なら回復キーも確保してください。'
+            CleanInstallUsb = '個人の PC では、安全な別の PC で Microsoft 公式のインストール USB を作成してください。USB から起動し、Windows を新規インストールします。選んだドライブのデータは消去されます。'
+            CleanInstallRestore = '個人の PC では、インストール後に Windows とウイルス対策ソフトを更新し、バックアップをスキャンしてから必要な文書や写真を戻してください。'
             Results = '点検結果'
             ResultExecution = 'マルウェアが実行された痕跡が見つかりました。'
-            ResultPersistence = 'Chrome でマルウェアが再び実行される可能性のあるファイルや設定が見つかりました。'
+            ResultPersistence = 'Chrome に不審な DLL のパスまたは登録値が見つかりました。ファイルがマルウェアかどうかは確認できませんでした。'
+            CheckChromeTarget = 'ウイルス対策ソフトの履歴と点検ログで DLL のパスを照合してください。マルウェアと確認できた場合はネットワークを切断し、追加の点検を行ってください。'
             UnknownDisclosure = 'この点検では、情報が流出したかは分かりません。'
             ResultDownload = 'マルウェアが疑われるファイルまたはダウンロード記録が見つかりました。実行されたかは確認できませんでした。'
-            ProtectIfExecutionPossible = '実行された可能性がある場合は、先にアカウントを保護してください。'
-            CheckAgain = '対処後にもう一度点検してください。悪意のあるファイルが残っているか、実行や Chrome の自動起動の痕跡が見つかった場合は、PC をネットワークから切り離したまま Windows のクリーンインストールを検討してください。手順へのリンクは点検ログにあります。'
+            CheckAgain = 'ウイルス対策ソフトの履歴で、実行前にブロックされたか確認してください。確認できた場合は隔離してから再点検します。実行や自動起動の根拠があり、影響範囲を判断できない場合は、個人の PC では Windows のクリーンインストールを推奨します。'
             ResultRequest = 'マルウェアのダウンロード先が見つかりました。実際にダウンロードされたか、実行されたかは確認できませんでした。'
             ResultExposure = '悪意のあるスクリプトに触れた痕跡が見つかりました。マルウェアが実行されたかは確認できませんでした。'
             ResultInconclusive = '判定保留。読み取れる記録が不足しているか、追加の確認が必要な項目があります。'
@@ -280,6 +270,17 @@ $messages = switch ($Language) {
             LogSaveFailed = 'ログを保存できませんでした。デスクトップなど、書き込みできるフォルダーに 2 つのファイルを置いてからやり直してください。'
             ActionsStopped = '対処を中止  {0}'
             ActionLogFailed = '対処の結果をログに追記できませんでした。画面に表示されたバックアップのパスを控えてください。'
+            ReviewActions = '対処内容の確認'
+            ConfirmReview = '対処できる項目を見るには 1 と入力してください。Enter で終了'
+            ReviewSkipped = '点検のみで終了しました。'
+            BackupInspectionOnly = 'バックアップは確認用です。不審なファイルや自動起動設定は復元しません。誤検知が確認できた場合は、公式配布元の正常なファイルに置き換えてください。'
+            BackupOriginalFile = '元のファイルパス  {0}'
+            BackupOriginalValue = '元のレジストリパス  {0} [{1}]'
+            BackupInspectionFailed = 'バックアップを確認できませんでした  {0}'
+            ResultVerifiedDownload = '既知のマルウェアと一致するファイルが見つかりました。実行は確認できませんでした。'
+            ResultSuspectedExecution = '実行を疑う記録があります。他のログとウイルス対策ソフトの履歴を確認してください。'
+            ResultConfirmedPersistence = 'この事件の通信指標を含む DLL が Chrome に登録されています。'
+            RecommendCleanInstall = '個人の PC では Windows のクリーンインストールを推奨します。会社や学校の PC ではログを保管し、担当者に連絡してください。'
         }
     }
     default {
@@ -314,17 +315,13 @@ $messages = switch ($Language) {
             OpenedPathMismatch = 'The opened file does not have the approved path.'
             ReparsePath = 'The path contains a link or junction.'
             BackupVerificationFailed = 'Could not verify the encrypted backup.'
-            ChromeActionEvidence = 'The DLL is registered for Chrome. Its SHA-256 hash matches the parent folder name.'
+            ChromeActionEvidence = 'The registered DLL contains the server address and communication path used in this incident.'
             PayloadActionEvidence = 'The file''s SHA-256 hash matches a published malware hash.'
             RegistryTargetMismatch = 'The registry entry does not match the verified target.'
             RegistryKeyUnreadable = 'The registry key is missing or cannot be opened.'
-            RegistryValueExists = 'The default value already exists. Skipping restore.'
-            RegistryRestoreUnverified = 'Could not verify that the default value was restored.'
             RegistryValueChanged = 'The registry value changed after the scan.'
             RegistryValueChangedDuringBackup = 'The registry value changed during backup.'
             RegistryRemovalUnverified = 'Could not verify that the default value was removed.'
-            RecoveryInstructions = 'If you confirm a false positive, open the checker folder on this PC with the same Windows account and run the command below.'
-            NoActionTargets = 'No items met the criteria for quarantine or removal.'
             OptionalActions = 'Optional actions. Press Enter to skip an item.'
             BeforeActions = 'Disconnect from the internet and close the NIKKE launcher and Chrome. On a work PC, contact your security team first.'
             FileQuarantine = 'Quarantine file  {0}'
@@ -346,14 +343,7 @@ $messages = switch ($Language) {
             BackupUnreadable = 'This is not a readable checker backup.'
             BackupFormatUnknown = 'Could not verify the backup format.'
             BackupMismatch = 'The file hash or the original path does not match the backup.'
-            FileRestore = 'Restore file  {0}'
-            RegistryRestore = 'Restore default value  {0} [{1}]'
-            BeforeRestore = 'Restore only after confirming a false positive. Existing files or values at the original location will be kept.'
-            ConfirmRestore = 'Type RESTORE to restore this item'
-            RestoreCancelled = 'Restore cancelled.'
-            RestoreDone = 'Restored.'
             WindowsOnly = 'Run this tool on Windows.'
-            RestoreFailed = 'Restore incomplete  {0}'
             Title = 'NIKKE PC Launcher Check'
             Author = 'Author Serio_ai'
             ScanTime = 'Scan time {0:yyyy-MM-dd HH:mm:ss zzz}'
@@ -377,16 +367,16 @@ $messages = switch ($Language) {
             RotateKeys = 'Revoke and replace any exposed API or SSH keys. If a crypto wallet recovery phrase may have been exposed, create a new wallet on a trusted device.'
             RunAntivirus = 'On a personal PC, open Windows Security → Virus & threat protection → Scan options and run a full scan. If you use another antivirus, scan with that tool.'
             ReviewQuarantine = 'On a personal PC, compare Windows Security''s Protection history with the paths in the scan log. If action is needed, choose Quarantine. If the same threat is already quarantined and you have saved its record, choose Remove.'
-            CleanInstallPrepare = 'A clean install of Windows is recommended if you find signs of execution or automatic startup. Save the documents, photos and scan records you need to another drive. If BitLocker is enabled, save its recovery key too.'
-            CleanInstallUsb = 'On a trusted PC, create an official Microsoft Windows installation USB. Plug it into the affected PC and boot from it. In Windows Setup, identify the drive that held Windows before starting a clean install. The selected drive will be erased.'
-            CleanInstallRestore = 'After installation, copy back your documents and photos. Avoid restoring old executables, browser profiles, or a full Windows backup as-is.'
+            CleanInstallPrepare = 'Before reinstalling a personal PC, save the documents, photos and scan log you need to another drive. If BitLocker is enabled, save its recovery key too.'
+            CleanInstallUsb = 'For a personal PC, create official Microsoft installation media on another trusted PC. Boot from the USB to install Windows. The selected drive will be erased.'
+            CleanInstallRestore = 'After reinstalling a personal PC, update Windows and your antivirus, then scan the backup before restoring the documents and photos you need.'
             Results = 'Scan results'
             ResultExecution = 'Found signs that malware ran.'
-            ResultPersistence = 'Found files or settings that could let malware run again in Chrome.'
+            ResultPersistence = 'Found a suspicious Chrome DLL path or registry value. The file was not confirmed to be malicious.'
+            CheckChromeTarget = 'Compare the DLL path in the scan log with your antivirus history. If the file is confirmed malicious, disconnect from the network and investigate further.'
             UnknownDisclosure = 'This scan cannot tell whether any data was stolen.'
             ResultDownload = 'Found a suspicious file or a download record. Execution could not be verified.'
-            ProtectIfExecutionPossible = 'If the malware may have run, secure your accounts first.'
-            CheckAgain = 'Scan again after cleanup. If malicious files remain, or you find signs of execution or automatic startup in Chrome, keep the PC offline and consider a clean Windows install. The scan log links to installation instructions.'
+            CheckAgain = 'Check antivirus history to see whether the threat was blocked before execution. If it was, quarantine and scan again. If there is evidence of execution or persistence and you cannot establish the scope, a clean Windows install is recommended for personal PCs.'
             ResultRequest = 'Found a malware download address. The scan could not verify whether the file was downloaded or run.'
             ResultExposure = 'Found signs of exposure to a malicious script. Execution of the malware could not be verified.'
             ResultInconclusive = 'Inconclusive. There are too few readable records or some items need further review.'
@@ -411,6 +401,17 @@ $messages = switch ($Language) {
             LogSaveFailed = 'Could not save the log. Put both files in a folder you can write to, such as your desktop, then try again.'
             ActionsStopped = 'Optional actions stopped  {0}'
             ActionLogFailed = 'Could not add the action results to the log. Keep the backup path shown on screen.'
+            ReviewActions = 'Review available actions'
+            ConfirmReview = 'Type 1 to review the items, or press Enter to finish'
+            ReviewSkipped = 'Scan finished without applying actions.'
+            BackupInspectionOnly = 'Backups are for inspection. Suspect files and startup settings cannot be restored here. If a false positive is confirmed, use a clean replacement from the official publisher.'
+            BackupOriginalFile = 'Original file path  {0}'
+            BackupOriginalValue = 'Original registry path  {0} [{1}]'
+            BackupInspectionFailed = 'Backup inspection failed  {0}'
+            ResultVerifiedDownload = 'A file matched known malware. Execution was not confirmed.'
+            ResultSuspectedExecution = 'Some records suggest execution. Check other logs and antivirus history.'
+            ResultConfirmedPersistence = 'Chrome is registered to load a DLL that contains network indicators from this incident.'
+            RecommendCleanInstall = 'For a personal PC, a clean install of Windows is recommended. For a work or school PC, save the log and contact your security team.'
         }
     }
 }
@@ -422,6 +423,7 @@ $scan = @{ Issues = 0; DebugLogs = 0; CacheFiles = 0; PayloadFiles = 0 }
 $affectedCaches = [System.Collections.Generic.List[string]]::new()
 $payloadCandidates = [ordered]@{}
 $registeredDlls = [System.Collections.Generic.List[object]]::new()
+$verifiedChromeDlls = @{}
 $chromeClsidPath = 'Software\Classes\CLSID\{E77CC89B-7401-4C04-8CED-149DB35ADD04}'
 $chromeValuePath = "$chromeClsidPath\InprocServer32"
 $loaderUrl = '(?i)https?://(?:analytics\.)?insightjs\.(?:com|org)(?=[:/\s"''\x00]|$)'
@@ -542,6 +544,7 @@ function Test-CacheFile([IO.FileInfo]$File, [string]$Kind) {
         Add-Finding Exposure $messages.LoaderHash $path
     }
     if ($payloadHashes.ContainsKey($bytes.Length) -and (Get-BytesHash $bytes) -eq $payloadHashes[$bytes.Length]) {
+        $scan.VerifiedDownload = $true
         Add-Finding Download $messages.PayloadHash $path
     }
 }
@@ -554,7 +557,8 @@ function Test-LauncherFile([IO.FileInfo]$File, [string]$Kind) {
 
     if ($payloadHashes.ContainsKey($bytes.Length) -and (Get-BytesHash $bytes) -eq $payloadHashes[$bytes.Length]) {
         Add-Finding Download $messages.PayloadHash $path
-        if ($OfferRemediation -and $Kind -eq 'Tinyget') { $payloadCandidates[$path] = $payloadHashes[$bytes.Length] }
+        $scan.VerifiedDownload = $true
+        if ($Kind -eq 'Tinyget') { $payloadCandidates[$path] = $payloadHashes[$bytes.Length] }
         return
     }
     if ($Kind -eq 'Tinyget' -and $bytes.Length -ge 3 -and $bytes[0] -eq 27 -and $bytes[1] -eq 76 -and $bytes[2] -eq 74) {
@@ -657,11 +661,24 @@ function Test-ChromePersistence {
             $target = if ($server) { [string]$server.GetValue('', '', [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) }
             if ($target -match '(?i)[\\/]platform_experience_helper\.dll"?\s*$') {
                 Add-Finding Persistence $messages.ChromeRegistered $label
-                if ($OfferRemediation) {
-                    $kind = $server.GetValueKind('')
-                    $dllPath = [Environment]::ExpandEnvironmentVariables($target.Trim('"'))
-                    if ($kind -in 'String','ExpandString' -and (Test-ActionChromePath $dllPath)) {
-                        $registeredDlls.Add(@{ Kind = 'Registry'; Path = "HKCU\$chromeValuePath"; Dll = $dllPath; Value = $target; ValueKind = [string]$kind; View = [string]$view })
+                $kind = $server.GetValueKind('')
+                $dllPath = [Environment]::ExpandEnvironmentVariables($target.Trim('"'))
+                if ($kind -in 'String','ExpandString' -and (Test-ActionChromePath $dllPath)) {
+                    if (!$verifiedChromeDlls.ContainsKey($dllPath)) {
+                        $file = Get-ScanItem $dllPath
+                        if ($file -and !$file.PSIsContainer -and $file.Length -le 1MB) {
+                            $bytes = Read-Artifact $file
+                            if (Test-IncidentChromeDll $bytes) {
+                                $verifiedChromeDlls[$dllPath] = Get-BytesHash $bytes
+                            }
+                        }
+                    }
+                    if ($verifiedChromeDlls.ContainsKey($dllPath)) {
+                        $registeredDlls.Add(@{
+                            Kind = 'Registry'; Path = "HKCU\$chromeValuePath"; Dll = $dllPath
+                            Value = $target; ValueKind = [string]$kind; View = [string]$view
+                            Hash = $verifiedChromeDlls[$dllPath]
+                        })
                     }
                 }
             } else {
@@ -710,6 +727,24 @@ function Test-ActionChromePath([string]$Path) {
         $Path.Substring($prefix.Length) -match '^[0-9a-f]{64}\\platform_experience_helper\.dll$'
 }
 
+function Test-IncidentChromeDll([byte[]]$Bytes) {
+    if ($Bytes.Length -lt 88 -or $Bytes.Length -gt 1MB -or
+        [BitConverter]::ToUInt16($Bytes, 0) -ne 0x5A4D) { return $false }
+    $pe = [BitConverter]::ToInt32($Bytes, 60)
+    if ($pe -lt 64 -or $pe -gt ($Bytes.Length - 24) -or
+        [BitConverter]::ToUInt32($Bytes, $pe) -ne 0x4550 -or
+        !([BitConverter]::ToUInt16($Bytes, ($pe + 22)) -band 0x2000)) { return $false }
+
+    # The incident DLL uses this host and an agent-specific /px/ identifier.
+    # Match both inside the DLL. The filename and folder are only path checks.
+    $ascii = [Text.Encoding]::ASCII.GetString($Bytes)
+    $wide = [Text.Encoding]::Unicode.GetString($Bytes)
+    $hostMarker = '(?i)(?<![\w.-])analytics\.insightjs\.com(?![\w.-])'
+    $agentMarker = '(?i)/px/[0-9a-f]{32}(?![0-9a-f])'
+    ($ascii -match $hostMarker -or $wide -match $hostMarker) -and
+        ($ascii -match $agentMarker -or $wide -match $agentMarker)
+}
+
 function Assert-LocalActionPath([string]$Path) {
     if ($Path -notmatch '^[A-Za-z]:\\' -or $Path.Substring(2) -match '[<>:"|?*/\x00-\x1f]|[. ](?:\\|$)' -or
         [IO.Path]::GetFullPath($Path) -cne $Path -or [IO.DriveInfo]::new($Path.Substring(0, 3)).DriveType -ne 'Fixed') {
@@ -739,11 +774,9 @@ using Microsoft.Win32.SafeHandles;
 
 public static class NikkeCheckedFile {
     private const uint GenericRead = 0x80000000;
-    private const uint GenericWrite = 0x40000000;
     private const uint DeleteAccess = 0x00010000;
     private const uint OpenReparsePoint = 0x00200000;
     private const uint OpenExisting = 3;
-    private const uint CreateNew = 1;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct FileInfo {
@@ -790,19 +823,6 @@ public static class NikkeCheckedFile {
 
     public static void Quarantine(FileStream file) { MarkForRemoval(file.SafeFileHandle); }
 
-    public static void Restore(string path, byte[] bytes, string unsafeFile, string pathMismatch) {
-        using (var handle = CreateFileW(path, GenericRead | GenericWrite | DeleteAccess, 0, IntPtr.Zero, CreateNew, OpenReparsePoint, IntPtr.Zero)) {
-            if (handle.IsInvalid) throw new Win32Exception();
-            try { CheckHandle(handle, path, unsafeFile, pathMismatch); }
-            catch { MarkForRemoval(handle); throw; }
-            using (var stream = new FileStream(handle, FileAccess.Write)) {
-                try {
-                    stream.Write(bytes, 0, bytes.Length);
-                    stream.Flush(true);
-                } catch { MarkForRemoval(handle); throw; }
-            }
-        }
-    }
 }
 '@
 }
@@ -814,43 +834,31 @@ function Save-ActionBackup([System.Collections.IDictionary]$Record, [string]$Pat
     $Record['Version'] = 1
     $bytes = [Text.Encoding]::UTF8.GetBytes(($Record | ConvertTo-Json -Compress))
     $encrypted = [Security.Cryptography.ProtectedData]::Protect($bytes, $null, 'CurrentUser')
-    $stream = [IO.File]::Open($Path, 'CreateNew', 'Write', 'None')
+    $stream = [IO.File]::Open($Path, 'CreateNew', 'ReadWrite', 'None')
     try {
         $stream.Write($encrypted, 0, $encrypted.Length)
         $stream.Flush($true)
+        $stream.Position = 0
+        $reader = [IO.BinaryReader]::new($stream)
+        try { $saved = $reader.ReadBytes($encrypted.Length) }
+        finally { $reader.Dispose() }
+        if ((Get-BytesHash $saved) -ne (Get-BytesHash $encrypted)) {
+            throw $messages.BackupVerificationFailed
+        }
     } finally { $stream.Dispose() }
-    if ((Get-FileHash -LiteralPath $Path).Hash -ne (Get-BytesHash $encrypted)) {
-        throw $messages.BackupVerificationFailed
-    }
 }
 
 function Get-RemediationItems {
-    $verifiedDlls = [ordered]@{}
-    foreach ($entry in $registeredDlls) {
-        if ($verifiedDlls.Contains($entry.Dll)) { continue }
-        $file = Get-ScanItem $entry.Dll
-        if (!$file -or $file.PSIsContainer) { continue }
-        $bytes = Read-Artifact $file
-        if ($bytes.Length -ge 2 -and $bytes.Length -le 1MB -and $bytes[0] -eq 77 -and $bytes[1] -eq 90) {
-            $hash = Get-BytesHash $bytes
-            if ($hash -eq $file.Directory.Name) { $verifiedDlls[$entry.Dll] = $hash }
-        }
+    $registeredDlls
+    foreach ($path in $verifiedChromeDlls.Keys) {
+        @{ Kind = 'File'; Path = $path; Hash = $verifiedChromeDlls[$path]; Evidence = $messages.ChromeActionEvidence }
     }
-
-    foreach ($entry in $registeredDlls) {
-        if ($scan.ConfirmedExecution -or $verifiedDlls.Contains($entry.Dll)) { $entry }
-    }
-    foreach ($path in $verifiedDlls.Keys) {
-        @{ Kind = 'File'; Path = $path; Hash = $verifiedDlls[$path]; Evidence = $messages.ChromeActionEvidence }
-    }
-    if ($scan.ConfirmedExecution -or $verifiedDlls.Count) {
-        foreach ($path in $payloadCandidates.Keys) {
-            @{ Kind = 'File'; Path = $path; Hash = $payloadCandidates[$path]; Evidence = $messages.PayloadActionEvidence }
-        }
+    foreach ($path in $payloadCandidates.Keys) {
+        @{ Kind = 'File'; Path = $path; Hash = $payloadCandidates[$path]; Evidence = $messages.PayloadActionEvidence }
     }
 }
 
-function Invoke-RegistryAction([System.Collections.IDictionary]$Record, [string]$Backup, [switch]$Restore) {
+function Invoke-RegistryAction([System.Collections.IDictionary]$Record, [string]$Backup) {
     if ($Record.Path -cne "HKCU\$chromeValuePath" -or $Record.View -notin $registryViews -or
         $Record.ValueKind -notin 'String','ExpandString' -or
         [Environment]::ExpandEnvironmentVariables(([string]$Record.Value).Trim('"')) -cne $Record.Dll -or
@@ -866,43 +874,38 @@ function Invoke-RegistryAction([System.Collections.IDictionary]$Record, [string]
         $key = $baseKey.OpenSubKey($chromeValuePath, $true)
         if (!$key) { throw $messages.RegistryKeyUnreadable }
         $options = [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames
-        if ($Restore) {
-            if ('' -in $key.GetValueNames()) { throw $messages.RegistryValueExists }
-            $key.SetValue('', $Record.Value, $kind)
-            if ($key.GetValue('', $null, $options) -cne $Record.Value -or $key.GetValueKind('') -ne $kind) {
-                throw $messages.RegistryRestoreUnverified
-            }
-        } else {
-            if ($key.GetValue('', $null, $options) -cne $Record.Value -or $key.GetValueKind('') -ne $kind) {
-                throw $messages.RegistryValueChanged
-            }
+        if ($key.GetValue('', $null, $options) -cne $Record.Value -or $key.GetValueKind('') -ne $kind) {
+            throw $messages.RegistryValueChanged
+        }
+        $stream = [NikkeCheckedFile]::OpenForQuarantine($Record.Dll, $messages.UnsafeFileHandle, $messages.OpenedPathMismatch)
+        try {
+            if ($stream.Length -gt 1MB) { throw $messages.ActionSizeLimit }
+            $sha = [Security.Cryptography.SHA256]::Create()
+            try { $hash = [BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-', '') }
+            finally { $sha.Dispose() }
+            if ($hash -ne $Record.Hash) { throw $messages.FileChanged }
             Save-ActionBackup $Record $Backup
             if ($key.GetValue('', $null, $options) -cne $Record.Value -or $key.GetValueKind('') -ne $kind) {
                 throw $messages.RegistryValueChangedDuringBackup
             }
             $key.DeleteValue('', $true)
             if ('' -in $key.GetValueNames()) { throw $messages.RegistryRemovalUnverified }
-        }
+        } finally { $stream.Dispose() }
     } finally {
         if ($key) { $key.Dispose() }
         $baseKey.Dispose()
     }
 }
 
-function Show-RecoveryCommand([string]$Path) {
-    Write-Host $messages.RecoveryInstructions
-    Write-Host ('.\Run-Nikke-Check.bat -Language {0} -Restore "{1}"' -f $Language, $Path)
-}
-
-function Invoke-ConfirmedActions {
-    $items = @(Get-RemediationItems)
-    if (!$items.Count) {
-        Write-Report $messages.NoActionTargets -Show
+function Invoke-ConfirmedActions($Items) {
+    Write-Report $messages.ReviewActions -Show
+    if ((Read-Host $messages.ConfirmReview) -ne '1') {
+        Write-Report $messages.ReviewSkipped -Show
         return
     }
     Write-Report $messages.OptionalActions -Show
     Write-Report $messages.BeforeActions -Show
-    foreach ($item in $items) {
+    foreach ($item in $Items) {
         $backup = Join-Path $backupRoot ([Guid]::NewGuid().ToString('N') + '.nikke-backup')
         Write-Host ''
         if ($item.Kind -eq 'File') {
@@ -913,10 +916,13 @@ function Invoke-ConfirmedActions {
         } else {
             Write-Host ($messages.RegistryRemove -f $item.Path, $item.View)
             Write-Host ($messages.RegistryDll -f $item.Dll)
+            Write-Host $messages.ChromeActionEvidence
+            Write-Host "SHA-256  $($item.Hash)"
             Write-Host $messages.RegistryRemoveEffect
         }
         Write-Host ($messages.BackupFile -f $backup)
-        Show-RecoveryCommand $backup
+        Write-Host (".\Run-Nikke-Check.bat -Language {0} -InspectBackup '{1}'" -f $Language, $backup.Replace("'", "''"))
+        Write-Host $messages.BackupInspectionOnly
         if ((Read-Host $messages.ConfirmAction) -ine 'Y') {
             Write-Report ($messages.ActionSkipped -f $item.Path) -Show
             continue
@@ -951,47 +957,39 @@ function Invoke-ConfirmedActions {
     }
 }
 
-function Restore-ActionBackup([string]$Path) {
+function Show-ActionBackup([string]$Path) {
     if ([IO.Path]::GetDirectoryName($Path) -ine $backupRoot -or [IO.Path]::GetFileName($Path) -notmatch '^[0-9a-f]{32}\.nikke-backup$') {
         throw $messages.BackupPathRequired
     }
     Assert-LocalActionPath $Path
-    $file = Get-Item -LiteralPath $Path -Force
-    if ($file.PSIsContainer -or $file.Length -gt 2MB) { throw $messages.BackupUnreadable }
-    Initialize-ResponseTools
-    $encrypted = [IO.File]::ReadAllBytes($Path)
+    if ($PSVersionTable.PSEdition -eq 'Desktop') { Add-Type -AssemblyName System.Security }
+    $stream = [IO.File]::Open($Path, 'Open', 'Read', 'Read')
+    try {
+        if ($stream.Length -gt 2MB) { throw $messages.BackupUnreadable }
+        $reader = [IO.BinaryReader]::new($stream)
+        try { $encrypted = $reader.ReadBytes([int]$stream.Length) }
+        finally { $reader.Dispose() }
+    } finally { $stream.Dispose() }
     $plain = [Security.Cryptography.ProtectedData]::Unprotect($encrypted, $null, 'CurrentUser')
     $data = [Text.Encoding]::UTF8.GetString($plain) | ConvertFrom-Json
     if ($data.Version -ne 1 -or $data.Kind -notin 'File','Registry') { throw $messages.BackupFormatUnknown }
     if ($data.Kind -eq 'File') {
         Assert-LocalActionPath $data.Path
         $bytes = [Convert]::FromBase64String($data.Data)
-        $knownPayload = $payloadHashes.ContainsKey($bytes.Length) -and $payloadHashes[$bytes.Length] -eq $data.Hash -and
-            $data.Path -match '\\log\\tinyget\\'
-        $knownDll = (Test-ActionChromePath $data.Path) -and
-            [IO.Path]::GetFileName([IO.Path]::GetDirectoryName($data.Path)) -eq $data.Hash
-        if ($bytes.Length -gt 1MB -or (Get-BytesHash $bytes) -ne $data.Hash -or !($knownPayload -or $knownDll)) {
+        if ($data.Hash -notmatch '^[0-9a-f]{64}$' -or $bytes.Length -gt 1MB -or (Get-BytesHash $bytes) -ne $data.Hash) {
             throw $messages.BackupMismatch
         }
-        Write-Host ($messages.FileRestore -f $data.Path)
+        Write-Host ($messages.BackupOriginalFile -f $data.Path)
+        Write-Host "SHA-256  $($data.Hash)"
     } else {
-        Write-Host ($messages.RegistryRestore -f $data.Path, $data.View)
+        if ($data.Path -cne "HKCU\$chromeValuePath" -or $data.View -notin $registryViews -or
+            !(Test-ActionChromePath $data.Dll)) { throw $messages.RegistryTargetMismatch }
+        Assert-LocalActionPath $data.Dll
+        Write-Host ($messages.BackupOriginalValue -f $data.Path, $data.View)
         Write-Host ($messages.RegistryDll -f $data.Dll)
+        if ($data.Hash -match '^[0-9a-f]{64}$') { Write-Host "SHA-256  $($data.Hash)" }
     }
-    Write-Host $messages.BeforeRestore
-    if ((Read-Host $messages.ConfirmRestore) -cne 'RESTORE') {
-        Write-Host $messages.RestoreCancelled
-        return
-    }
-    if ($data.Kind -eq 'File') {
-        Assert-LocalActionPath $data.Path
-        [NikkeCheckedFile]::Restore($data.Path, $bytes, $messages.UnsafeFileHandle, $messages.OpenedPathMismatch)
-    } else {
-        $record = @{}
-        foreach ($property in $data.PSObject.Properties) { $record[$property.Name] = $property.Value }
-        Invoke-RegistryAction $record -Restore
-    }
-    Write-Host $messages.RestoreDone
+    Write-Host $messages.BackupInspectionOnly
 }
 
 if ($env:OS -ne 'Windows_NT') { throw $messages.WindowsOnly }
@@ -1002,10 +1000,10 @@ $roamingPath = [Environment]::GetFolderPath([Environment+SpecialFolder]::Applica
 $registryViews = @([Microsoft.Win32.RegistryView]::Registry32)
 if ([Environment]::Is64BitOperatingSystem) { $registryViews += [Microsoft.Win32.RegistryView]::Registry64 }
 $backupRoot = Join-Path $responseLocal 'NikkeLauncherChecker\Backups'
-if ($RestoreBackup) {
-    try { Restore-ActionBackup $RestoreBackup }
+if ($InspectBackup) {
+    try { Show-ActionBackup $InspectBackup }
     catch {
-        Write-Host ($messages.RestoreFailed -f $_.Exception.GetBaseException().Message)
+        Write-Host ($messages.BackupInspectionFailed -f $_.Exception.GetBaseException().Message)
         exit 2
     }
     exit 0
@@ -1089,26 +1087,38 @@ $reinstall = @(
 )
 
 Write-Report ("`n" + $messages.Results) -Show
-if ($hits.Execution -or $hits.Persistence) {
-    if ($hits.Execution) { Write-Report $messages.ResultExecution -Show }
-    if ($hits.Persistence) { Write-Report $messages.ResultPersistence -Show }
+if ($scan.ConfirmedExecution -or $registeredDlls.Count) {
+    $outcome = 'ConfirmedCompromise'
+    if ($scan.ConfirmedExecution) { Write-Report $messages.ResultExecution -Show }
+    if ($registeredDlls.Count) { Write-Report $messages.ResultConfirmedPersistence -Show }
     Write-Report $messages.UnknownDisclosure -Show
-    $steps = $isolate + $accounts + $keys + $scanForThreats + $reviewQuarantine + $removeLauncher + $reinstall + $reinstallLauncher
-} elseif ($hits.Download) {
-    Write-Report $messages.ResultDownload -Show
-    $steps = $isolate + ($messages.ProtectIfExecutionPossible + ' ' + $accounts) +
-        $scanForThreats + $reviewQuarantine + $removeLauncher +
-        $messages.CheckAgain + $reinstallLauncher
+    Write-Report $messages.RecommendCleanInstall -Show
+    $steps = $isolate + $accounts + $keys + $reinstall + $reinstallLauncher
+} elseif ($scan.VerifiedDownload -or $hits.Download -or $hits.Execution) {
+    $outcome = 'FurtherInvestigation'
+    if ($scan.VerifiedDownload) { Write-Report $messages.ResultVerifiedDownload -Show }
+    elseif ($hits.Download) { Write-Report $messages.ResultDownload -Show }
+    if ($hits.Execution) { Write-Report $messages.ResultSuspectedExecution -Show }
+    if ($hits.Persistence) { Write-Report $messages.ResultPersistence -Show }
+    $steps = $isolate + $scanForThreats + $reviewQuarantine + $messages.CheckAgain
+} elseif ($hits.Persistence) {
+    $outcome = 'PersistenceReview'
+    Write-Report $messages.ResultPersistence -Show
+    $steps = @($preserve, $messages.CheckChromeTarget)
 } elseif ($hits.Request) {
+    $outcome = 'Request'
     Write-Report $messages.ResultRequest -Show
     $steps = @($stopLauncher, $preserve) + $removeLauncher + $reinstallLauncher
 } elseif ($hits.Exposure) {
+    $outcome = 'Exposure'
     Write-Report $messages.ResultExposure -Show
     $steps = @($stopLauncher, $preserve) + $removeLauncher + $reinstallLauncher
 } elseif ($hits.Review -or $scan.Issues -or (!$scan.DebugLogs -and !$scan.CacheFiles -and !$scan.PayloadFiles)) {
+    $outcome = 'Inconclusive'
     Write-Report $messages.ResultInconclusive -Show
     $steps = @($messages.CheckAccountAndPath)
 } else {
+    $outcome = 'NoKnownTraces'
     Write-Report $messages.ResultNoTraces -Show
     Write-Report $messages.MissingHistory -Show
     $steps = @()
@@ -1126,6 +1136,7 @@ if ($affectedCaches.Count) {
     foreach ($cache in $affectedCaches) { Write-Report $cache -Show }
 }
 
+Write-Report ('Outcome={0}' -f $outcome)
 $lines.AddRange($details)
 Write-Report ("`n" + $messages.ScopeAndSources)
 Write-Report (($hits.GetEnumerator() | ForEach-Object { '{0}={1}' -f $_.Key, $_.Value }) -join '  ')
@@ -1150,9 +1161,10 @@ try {
     Write-Host $messages.LogSaveFailed
     exit 2
 }
-if ($OfferRemediation -and ($scan.ConfirmedExecution -or $registeredDlls.Count)) {
+$items = @(Get-RemediationItems)
+if ($OfferRemediation -and $items.Count) {
     $firstActionLine = $lines.Count
-    try { Invoke-ConfirmedActions }
+    try { Invoke-ConfirmedActions $items }
     catch {
         Write-Report ($messages.ActionsStopped -f $_.Exception.GetBaseException().Message) -Show
         $scan.Issues++

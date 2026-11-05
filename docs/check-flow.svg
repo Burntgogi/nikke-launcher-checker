@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="680" height="770" viewBox="0 0 680 770" role="img" aria-labelledby="flow-title flow-desc" xml:lang="ko">
   <title id="flow-title">니케 런처 체커의 점검과 선택 조치</title>
-  <desc id="flow-desc">배치 파일이 읽기 전용 점검을 실행하고 결과를 저장한다. 감염 근거와 조치 대상이 있으면 항목별 경로, 백업 위치, 복구 명령을 보여 준다. Enter는 건너뛰고 Y는 해당 항목만 다시 확인하고 백업한 뒤 처리한다. 파일은 격리하고 Chrome에서 의심 DLL을 불러오는 현재 계정의 레지스트리 기본값은 제거할 수 있다. 오탐이면 같은 PC와 Windows 계정에서 복구 명령을 실행한다.</desc>
+  <desc id="flow-desc">배포 ZIP을 확인한 뒤 배치 파일로 읽기 전용 점검을 실행한다. 결과를 저장하고 조치 대상이 있으면 1을 눌러 검토한다. Y로 확인한 항목만 다시 점검하고 백업한 뒤 파일을 격리하거나 레지스트리 기본값을 제거한다. 백업 확인은 원래 경로와 파일 지문을 표시한다.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
       <path d="M0 0L10 5L0 10z" fill="#5369a8"/>
@@ -26,29 +26,29 @@
   </g>
   <g font-family="'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', sans-serif">
     <g fill="#172752" font-size="22" font-weight="700">
-      <text x="48" y="49">1. 배치 파일 실행</text>
+      <text x="48" y="49">1. ZIP 확인 후 배치 파일 실행</text>
       <text x="48" y="131">2. 읽기 전용 점검</text>
       <text x="48" y="214">3. 결과 표시와 점검 로그 저장</text>
-      <text x="48" y="297">4. 조치할 근거와 대상이 있나요?</text>
+      <text x="48" y="297">4. 확인된 조치 대상이 있나요?</text>
       <text x="46" y="393">후보 없음</text>
-      <text x="318" y="393">후보 있음 · 항목별 확인</text>
+      <text x="318" y="393">후보 있음 · 1로 검토</text>
       <text x="46" y="498">Enter · 건너뛰기</text>
       <text x="318" y="498">Y · 이 항목만 처리</text>
-      <text x="48" y="692">오탐일 때 복구</text>
+      <text x="48" y="692">백업 확인</text>
     </g>
     <g fill="#405178" font-size="17">
-      <text x="48" y="71">Run-Nikke-Check.bat → Check-Nikke.ps1</text>
+      <text x="48" y="71">릴리스 ZIP 확인 → Run-Nikke-Check.bat</text>
       <text x="48" y="154">현재 계정의 런처 로그·캐시와 Chrome 파일·레지스트리 확인</text>
       <text x="48" y="237">발견한 흔적과 지금 할 일 안내</text>
-      <text x="48" y="320">런처 실행 기록과 악성 파일 지문 또는 Chrome 등록 경로와 DLL 지문</text>
+      <text x="48" y="320">공개 악성 파일 지문 또는 등록된 DLL 안의 사건 통신 지표</text>
       <text x="46" y="418">점검 결과를 남기고 종료</text>
-      <text x="318" y="418">대상 경로 · 백업 위치 · 복구 명령 표시</text>
+      <text x="318" y="418">경로 · 조치 근거 · 백업 위치</text>
       <text x="46" y="522">다음 후보 확인</text>
       <text x="318" y="523">대상을 다시 확인하고 암호화 백업</text>
       <text x="318" y="608">대상이 바뀌거나 파일이 잠겨 있으면</text>
       <text x="318" y="628">미완료로 표시</text>
-      <text x="48" y="715">같은 PC와 Windows 계정에서 복구 명령 실행 → RESTORE 입력</text>
-      <text x="48" y="736">원래 위치에 파일이나 값이 있으면 복구 중단</text>
+      <text x="48" y="715">같은 PC와 Windows 계정에서 백업 확인 명령 실행</text>
+      <text x="48" y="736">원래 경로와 지문 표시. 의심 파일과 설정은 복원하지 않음</text>
     </g>
     <g fill="#713d17" font-size="17" font-weight="700">
       <text x="318" y="553">파일 격리 · 원래 위치에서 제거</text>
